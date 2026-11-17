@@ -163,19 +163,39 @@ Cada servicio expone endpoints de inspección **de sólo lectura** sobre su prop
 
 ## Arquitectura
 
+```mermaid
+flowchart LR
+    UI["UI<br/>React + nginx"]
+
+    subgraph Servicios
+        direction TB
+        ORCH["saga-orchestrator"]
+        ORD["order-service"]
+        PAY["payment-service"]
+        INV["inventory-service"]
+    end
+
+    MQ{{"RabbitMQ<br/>saga.commands · saga.replies"}}
+
+    UI -- "POST /orders" --> ORD
+    UI -- "REST + SSE" --> ORCH
+
+    ORCH <-- "comandos / respuestas" --> MQ
+    ORD <--> MQ
+    PAY <--> MQ
+    INV <--> MQ
+
+    ORCH --- DBO[("orchestrator")]
+    ORD --- DB1[("orders")]
+    PAY --- DB2[("payments")]
+    INV --- DB3[("inventory")]
 ```
-                    ┌──────────────┐  SSE / REST   ┌──────────┐
-                    │ saga-        │◀──────────────│  UI      │ (React + nginx)
-                    │ orchestrator │               └──────────┘
-                    └──────┬───────┘
-         comandos (saga.commands) │ ▲ respuestas (saga.replies)
-                           ▼      │
-   ┌───────────────┐ ┌───────────────┐ ┌─────────────────┐
-   │ order-service │ │payment-service│ │inventory-service│
-   └──────┬────────┘ └──────┬────────┘ └───────┬─────────┘
-          ▼                 ▼                  ▼
-       db orders        db payments        db inventory       (una DB por servicio)
-```
+
+- La **UI** crea la orden en order-service y sigue la saga en vivo desde el orquestador (SSE).
+- Los servicios **nunca se llaman entre sí**: el orquestador manda comandos por `saga.commands` y cada
+  participante responde por `saga.replies`.
+- Cada servicio tiene **su propia base** (en la misma instancia de Postgres, pero sin compartir tablas) y
+  escribe sus mensajes en un **outbox** dentro de la misma transacción local.
 
 Cada servicio sigue la **arquitectura hexagonal** (puertos y adaptadores):
 
