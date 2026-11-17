@@ -1,0 +1,104 @@
+name: saga-pattern
+
+x-service: &service
+  build:
+    context: .
+    dockerfile: docker/service.Dockerfile
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+x-env: &env
+  DB_USER: saga
+  DB_PASSWORD: saga
+  RABBIT_HOST: rabbitmq
+  DEMO_RESET_INTERVAL: ${DEMO_RESET_INTERVAL:-15m}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: saga
+      POSTGRES_PASSWORD: saga
+      POSTGRES_DB: saga
+    volumes:
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saga"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  order-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { SERVICE: order-service }
+    environment:
+      <<: *env
+      PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/orders
+    ports: ["8081:8081"]
+
+  payment-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { SERVICE: payment-service }
+    environment:
+      <<: *env
+      PORT: 8082
+      DB_URL: jdbc:postgresql://postgres:5432/payments
+    ports: ["8082:8082"]
+
+  inventory-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { SERVICE: inventory-service }
+    environment:
+      <<: *env
+      PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/inventory
+    ports: ["8083:8083"]
+
+  saga-orchestrator:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { SERVICE: saga-orchestrator }
+    environment:
+      <<: *env
+      PORT: 8084
+      DB_URL: jdbc:postgresql://postgres:5432/orchestrator
+    ports: ["8084:8084"]
+
+  ui:
+    build: ./ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - order-service
+      - payment-service
+      - inventory-service
+      - saga-orchestrator

@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:8084}
+
+spring:
+  application:
+    name: saga-orchestrator
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/orchestrator}
+    username: ${DB_USER:saga}
+    password: ${DB_PASSWORD:saga}
+  mvc:
+    async:
+      request-timeout: -1
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+    listener:
+      simple:
+        concurrency: 4
+        max-concurrency: 16
+        prefetch: 50
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 500ms
+
+saga:
+  reply-timeout: 10s
+  max-attempts: 5
+
+demo:
+  reset:
+    interval: ${DEMO_RESET_INTERVAL:15m}
+    purge-queues: orchestrator.commands,orchestrator.replies,orchestrator.trace,saga.dead-letters

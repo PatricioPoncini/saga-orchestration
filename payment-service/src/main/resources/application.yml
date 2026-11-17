@@ -1,0 +1,29 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/payments}
+    username: ${DB_USER:saga}
+    password: ${DB_PASSWORD:saga}
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+    listener:
+      simple:
+        concurrency: 4
+        max-concurrency: 16
+        prefetch: 50
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 500ms
+
+demo:
+  reset:
+    interval: ${DEMO_RESET_INTERVAL:15m}
+    purge-queues: payment.commands

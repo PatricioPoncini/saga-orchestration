@@ -1,0 +1,11 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+node_modules/
+dist/
+.idea/
+*.iml
+.DS_Store
+.kotlin/
+
+.env
