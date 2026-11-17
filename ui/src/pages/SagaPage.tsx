@@ -137,12 +137,34 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
   return (
     <>
       <section className="hero">
-        <p>Hola, esto es una</p>
+        <p className="eyebrow">Demo interactiva · Patrón Saga con orquestación</p>
         <h1>Saga orquestada, en vivo.</h1>
         <p className="lead">
-          Una orden atraviesa <b>order</b>, <b>payment</b> e <b>inventory</b>. Si algo falla, el orquestador deshace
-          lo hecho en orden inverso. Elegí un escenario y mirá cómo se mueve cada estrella.
+          Una saga reemplaza una transacción distribuida por una secuencia de transacciones locales. En esta demo, un
+          orquestador coordina la creación de una orden entre tres servicios independientes, <b>order</b>,{' '}
+          <b>payment</b> e <b>inventory</b>, cada uno con su propia base de datos. Si un paso falla, ejecuta las
+          compensaciones en orden inverso para dejar el sistema consistente.
         </p>
+
+        <ol className="guide" aria-label="Cómo usar la demo">
+          <li>
+            <span className="guide-num">01</span>
+            <b>Elegí un escenario</b>
+            <span>En la lista de la izquierda: el camino feliz o una falla concreta (pago rechazado, falta de stock, un servicio caído…).</span>
+          </li>
+          <li>
+            <span className="guide-num">02</span>
+            <b>Seguí la saga</b>
+            <span>El diagrama muestra en qué paso está y si compensa. Debajo, la línea de tiempo detalla cada mensaje y cada decisión del orquestador.</span>
+          </li>
+          <li>
+            <span className="guide-num">03</span>
+            <b>Mirá los datos</b>
+            <span>
+              En <Link href="/datos">Datos y mensajes</Link> se ven las tablas de cada servicio y el recorrido de cada mensaje por RabbitMQ.
+            </span>
+          </li>
+        </ol>
       </section>
 
       <div className="layout">

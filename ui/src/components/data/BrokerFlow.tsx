@@ -63,7 +63,7 @@ export function BrokerFlow({ queues }: { queues: QueueStatus[] }) {
           Un <b>exchange</b> no guarda nada: recibe el mensaje y decide a qué cola mandarlo según su <b>routing key</b>.
           La <b>cola</b> sí lo guarda hasta que su servicio lo procesa. Si el servicio se cae, los mensajes esperan ahí.
         </p>
-        <p className="broker-intro dim">Es el broker compartido: los contadores incluyen los mensajes de todas las personas que están usando la demo.</p>
+        <p className="broker-intro dim">Los contadores incluyen los mensajes de todas las sagas en curso, no sólo la que estás mirando.</p>
       </div>
 
       {stuck.map((r) => (

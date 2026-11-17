@@ -4,26 +4,68 @@ Implementación didáctica del [patrón Saga](https://microservices.io/patterns/
 **Kotlin + Spring Boot + arquitectura hexagonal + RabbitMQ**, con una **UI web** para ver cómo avanza
 cada saga, cómo se compensa cuando algo falla y cómo se comporta ante fallas de infraestructura.
 
-## Quickstart
+## Levantarlo en tu máquina
 
-Requisitos: Docker (con Docker Compose).
+### Requisitos
+
+- **Docker** con **Docker Compose v2** (Docker Desktop en Mac/Windows, o Docker Engine en Linux).
+- Unos **4 GB de RAM libres** para Docker: son 4 servicios Java, Postgres y RabbitMQ.
+- Los puertos **3000, 5432, 5672, 8081–8084 y 15672** libres.
+
+No hace falta tener Java, Gradle ni Node instalados: todo se compila dentro de Docker.
+
+### Paso a paso
 
 ```bash
-git clone <este-repo> && cd saga-pattern
-docker compose up --build
+git clone https://github.com/PatricioPoncini/saga-orchestration.git
+cd saga-orchestration
+docker compose up --build -d
 ```
+
+La primera vez tarda unos minutos porque descarga las imágenes y compila los servicios. Para saber
+cuándo está listo:
+
+```bash
+docker compose ps
+```
+
+Cuando `postgres` y `rabbitmq` figuran como `healthy` y los servicios como `running`, abrí
+**http://localhost:3000** y probá los escenarios desde la UI.
+
+Con `make` es lo mismo: `make up` (levanta), `make logs` (logs de los servicios), `make down` (baja todo).
+
+### Qué queda corriendo
 
 | Qué | URL |
 |---|---|
 | UI de la demo | http://localhost:3000 |
 | RabbitMQ management | http://localhost:15672 (guest / guest) |
+| order-service | http://localhost:8081 |
+| payment-service | http://localhost:8082 |
+| inventory-service | http://localhost:8083 |
+| saga-orchestrator | http://localhost:8084 |
+| Postgres | `localhost:5432` (saga / saga): bases `orders`, `payments`, `inventory`, `orchestrator` |
 
-Para bajar todo y borrar los datos: `docker compose down -v`.
+### Comprobar que todo funciona
 
-### Producción (VPS)
+```bash
+./scripts/smoke-test.sh
+```
 
-`./deploy/deploy.sh` levanta todo con HTTPS automático (Caddy + Let's Encrypt) y protección contra abuso.
-Guía paso a paso (servidor, DNS, Cloudflare, seguridad): [deploy/README.md](deploy/README.md).
+Corre los escenarios contra los servicios levantados y muestra ✅ o ❌ para cada uno.
+
+### Bajar todo
+
+```bash
+docker compose down      # baja los contenedores y conserva los datos
+docker compose down -v   # baja todo y borra los datos
+```
+
+### Si algo no arranca
+
+- **Un puerto está ocupado**: `lsof -i :3000` (o el puerto que sea) para ver qué lo usa, y cerralo.
+- **Un servicio se reinicia en loop**: `docker compose logs -f <servicio>` para ver el error.
+- **Cambiaste una migración SQL que ya se había aplicado**: `docker compose down -v` y volvé a levantar.
 
 ### Reinicio automático de la demo
 
@@ -90,8 +132,8 @@ sequenceDiagram
 | 6 | Inventory caído | Mensajería durable: los comandos esperan en una cola de reintento (TTL) | `COMPLETED` si vuelve a tiempo, si no `FAILED` |
 
 Cada escenario manda sus fallas junto con la orden (por ejemplo `{"faults": {"paymentDelayMs": 14000}}`).
-Viajan como headers de los mensajes de **esa** saga, así que muchas personas pueden correr escenarios distintos
-en paralelo sin afectarse entre sí: "Payment lento" demora sólo las respuestas de tu saga (outbox con
+Viajan como headers de los mensajes de **esa** saga, así que se pueden correr escenarios distintos
+en paralelo (por ejemplo, en varias pestañas) sin que se afecten entre sí: "Payment lento" demora sólo las respuestas de tu saga (outbox con
 `available_at`) y "Inventory caído" rechaza sólo tus mensajes, que esperan en `inventory.retry` y vuelven solos.
 
 En la UI vas a ver:
