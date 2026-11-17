@@ -22,8 +22,8 @@ Para bajar todo y borrar los datos: `docker compose down -v`.
 
 ### Producción (VPS)
 
-`./scripts/deploy.sh` levanta todo con HTTPS automático (Caddy + Let's Encrypt) y protección contra abuso.
-Guía paso a paso (servidor, DNS, Cloudflare, seguridad): [docs/deploy.md](docs/deploy.md).
+`./deploy/deploy.sh` levanta todo con HTTPS automático (Caddy + Let's Encrypt) y protección contra abuso.
+Guía paso a paso (servidor, DNS, Cloudflare, seguridad): [deploy/README.md](deploy/README.md).
 
 ### Reinicio automático de la demo
 

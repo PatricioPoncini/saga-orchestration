@@ -1,7 +1,7 @@
 # Despliegue en un VPS
 
 Resultado: la demo en `https://saga.patricioponcini.com.ar` (o el subdominio que elijas), con HTTPS
-automático, levantada con **un solo comando**: `./scripts/deploy.sh`.
+automático, levantada con **un solo comando**: `./deploy/deploy.sh`.
 
 ```
 Internet ──▶ (Cloudflare, opcional) ──▶ Caddy :443 ──▶ nginx (UI) ──▶ servicios ──▶ Postgres / RabbitMQ
@@ -70,24 +70,24 @@ Como `patricio` en el VPS:
 
 ```bash
 git clone <url-del-repo> sagalab && cd sagalab
-./scripts/deploy.sh
+./deploy/deploy.sh
 ```
 
 La primera vez pregunta el subdominio, el email (para Let's Encrypt) y cada cuánto se reinicia la demo, y
-crea `.env` con contraseñas aleatorias para la base y RabbitMQ. La primera compilación tarda unos minutos.
+crea `deploy/.env` con contraseñas aleatorias para la base y RabbitMQ. La primera compilación tarda unos minutos.
 Al final muestra `✓ Listo: https://saga.patricioponcini.com.ar`.
 
-**Actualizar** después de cambiar el código: `./scripts/deploy.sh --pull`.
+**Actualizar** después de cambiar el código: `./deploy/deploy.sh --pull`.
 
 Comandos útiles:
 
 ```bash
-docker compose -f docker-compose.prod.yml ps                     # estado
-docker compose -f docker-compose.prod.yml logs -f caddy ui       # logs (también saga-orchestrator, etc.)
-docker compose -f docker-compose.prod.yml down                   # bajar (conserva datos y certificados)
+docker compose -f deploy/docker-compose.yml ps                     # estado
+docker compose -f deploy/docker-compose.yml logs -f caddy ui       # logs (también saga-orchestrator, etc.)
+docker compose -f deploy/docker-compose.yml down                   # bajar (conserva datos y certificados)
 ```
 
-> Guardá una copia del `.env`: la contraseña de la base sólo se fija la primera vez que se crea el volumen.
+> Guardá una copia de `deploy/.env`: la contraseña de la base sólo se fija la primera vez que se crea el volumen.
 
 ## 5. (Recomendado) Activar Cloudflare adelante
 
@@ -97,8 +97,8 @@ Con el sitio ya andando por HTTPS:
 2. SSL/TLS → modo **Full (strict)**.
 3. SSL/TLS → Edge Certificates → **Always Use HTTPS: Off**. Caddy ya redirige a HTTPS, y así la
    renovación del certificado de Let's Encrypt (que usa el puerto 80) sigue funcionando a través de Cloudflare.
-4. En el `.env`, reemplazá `TRUSTED_PROXIES=private_ranges` por los rangos de Cloudflare
-   (lista actualizada en https://www.cloudflare.com/ips/) y volvé a correr `./scripts/deploy.sh`.
+4. En `deploy/.env`, reemplazá `TRUSTED_PROXIES=private_ranges` por los rangos de Cloudflare
+   (lista actualizada en https://www.cloudflare.com/ips/) y volvé a correr `./deploy/deploy.sh`.
    Sin esto, los límites por IP verían a Cloudflare como si fuera un único visitante:
 
    ```

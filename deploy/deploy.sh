@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")"
 
-COMPOSE=(docker compose -f docker-compose.prod.yml)
+COMPOSE=(docker compose)
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "✗ Docker no está instalado. Instalalo con:"

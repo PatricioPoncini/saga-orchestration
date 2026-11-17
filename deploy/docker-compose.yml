@@ -40,14 +40,14 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL en .env}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-private_ranges}
     volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
     networks: [edge]
     depends_on: [ui]
 
   ui:
-    build: ./ui
+    build: ../ui
     restart: unless-stopped
     logging: *logging
     mem_limit: 64m
@@ -64,7 +64,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
       POSTGRES_DB: saga
     volumes:
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - pgdata:/var/lib/postgresql/data
     networks: [backend]
     healthcheck:
@@ -93,7 +93,7 @@ services:
   order-service:
     <<: *service
     build:
-      context: .
+      context: ..
       dockerfile: docker/service.Dockerfile
       args: { SERVICE: order-service }
     environment:
@@ -104,7 +104,7 @@ services:
   payment-service:
     <<: *service
     build:
-      context: .
+      context: ..
       dockerfile: docker/service.Dockerfile
       args: { SERVICE: payment-service }
     environment:
@@ -115,7 +115,7 @@ services:
   inventory-service:
     <<: *service
     build:
-      context: .
+      context: ..
       dockerfile: docker/service.Dockerfile
       args: { SERVICE: inventory-service }
     environment:
@@ -126,7 +126,7 @@ services:
   saga-orchestrator:
     <<: *service
     build:
-      context: .
+      context: ..
       dockerfile: docker/service.Dockerfile
       args: { SERVICE: saga-orchestrator }
     environment:
