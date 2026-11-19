@@ -46,7 +46,7 @@ class OrderController(
             sagaId = order.sagaId,
             kind = TraceKinds.LOCAL_TX_COMMITTED,
             messageType = MessageTypes.START_CREATE_ORDER_SAGA,
-            description = "Orden ${order.id.take(8)} creada en PENDING + StartCreateOrderSaga en el outbox (misma transacción)",
+            description = "Order ${order.id.take(8)} created as PENDING + StartCreateOrderSaga in the outbox (same transaction)",
         )
         return order
     }

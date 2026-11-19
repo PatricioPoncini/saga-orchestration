@@ -55,23 +55,23 @@ const KIND: Record<string, Kind> = {
   StockUnavailable: 'fail',
 }
 const KIND_LABEL: Record<Kind, string> = {
-  start: 'inicio',
-  command: 'comando',
-  ok: 'respuesta',
-  fail: 'respuesta: falló',
-  comp: 'compensación',
+  start: 'start',
+  command: 'command',
+  ok: 'reply',
+  fail: 'reply: failed',
+  comp: 'compensation',
 }
 
 const t = (iso: string | null) => (iso ? new Date(iso).getTime() : null)
 const clock = (iso: string) =>
-  new Date(iso).toLocaleTimeString('es-AR', { hour12: false }) + '.' + String(new Date(iso).getMilliseconds()).padStart(3, '0')
+  new Date(iso).toLocaleTimeString('en-GB', { hour12: false }) + '.' + String(new Date(iso).getMilliseconds()).padStart(3, '0')
 const seconds = (n: number) => (n < 1 ? `${Math.round(n * 1000)} ms` : `${n.toFixed(n < 10 ? 1 : 0)} s`)
 
 export function MessageJourney({ journeys }: { journeys: Journey[] }) {
   const [open, setOpen] = useState<string | null>(null)
 
   if (journeys.length === 0) {
-    return <p className="empty">Esta saga todavía no tiene mensajes.</p>
+    return <p className="empty">This saga doesn't have any messages yet.</p>
   }
 
   const now = Date.now()
@@ -88,7 +88,7 @@ export function MessageJourney({ journeys }: { journeys: Journey[] }) {
     <div className="waterfall">
       <div className="wf-row wf-axis" aria-hidden="true">
         <span />
-        <span className="wf-axis-label">mensaje</span>
+        <span className="wf-axis-label">message</span>
         <div className="wf-track">
           {ticks.map((f) => (
             <span key={f} className="wf-tick" style={{ left: `${f * 100}%` }}>
@@ -96,7 +96,7 @@ export function MessageJourney({ journeys }: { journeys: Journey[] }) {
             </span>
           ))}
         </div>
-        <span className="wf-axis-label right">tardó</span>
+        <span className="wf-axis-label right">took</span>
       </div>
 
       <ol>
@@ -123,15 +123,15 @@ export function MessageJourney({ journeys }: { journeys: Journey[] }) {
                     <span className="wf-kind">{KIND_LABEL[kind]}</span>
                     {j.retry > 0 &&
                       (kind === 'ok' || kind === 'fail' ? (
-                        <span className="wf-flag comp" title="Respuesta a un comando reenviado: el orquestador ya tomó la primera">
-                          repetida (se ignora)
+                        <span className="wf-flag comp" title="Reply to a resent command: the orchestrator already took the first one">
+                          repeated (ignored)
                         </span>
                       ) : (
-                        <span className="wf-flag comp" title="El orquestador volvió a enviar el comando por timeout">
-                          reenvío {j.retry} por timeout
+                        <span className="wf-flag comp" title="The orchestrator sent the command again because of a timeout">
+                          resend {j.retry} after timeout
                         </span>
                       ))}
-                    {j.copies > 1 && <span className="wf-flag comp">duplicado ×{j.copies}</span>}
+                    {j.copies > 1 && <span className="wf-flag comp">duplicate ×{j.copies}</span>}
                   </span>
                 </span>
                 <span className="wf-track">
@@ -151,25 +151,25 @@ export function MessageJourney({ journeys }: { journeys: Journey[] }) {
                   {total !== null ? (
                     <span className="mono">{seconds(total)}</span>
                   ) : (
-                    <span className="comp">{published ? 'en la cola' : 'en el outbox'}</span>
+                    <span className="comp">{published ? 'in the queue' : 'in the outbox'}</span>
                   )}
                 </span>
               </button>
 
               {isOpen && (
                 <dl className="wf-detail">
-                  <div><dt>1 · outbox de {j.from}</dt><dd className="mono">{clock(j.message.createdAt)}</dd></div>
+                  <div><dt>1 · outbox of {j.from}</dt><dd className="mono">{clock(j.message.createdAt)}</dd></div>
                   <div>
-                    <dt>2 · publicado en RabbitMQ</dt>
+                    <dt>2 · published to RabbitMQ</dt>
                     <dd className="mono">
-                      {j.message.publishedAt ? `+${ms(j.message.createdAt, j.message.publishedAt)}` : 'todavía no'} ·{' '}
+                      {j.message.publishedAt ? `+${ms(j.message.createdAt, j.message.publishedAt)}` : 'not yet'} ·{' '}
                       {j.message.exchange} → {j.message.routingKey}
                     </dd>
                   </div>
                   <div>
-                    <dt>3 · procesado por {j.to}</dt>
+                    <dt>3 · processed by {j.to}</dt>
                     <dd className="mono">
-                      {j.processed ? `+${ms(j.message.publishedAt, j.processed.processedAt)} después de publicado` : 'todavía no'}
+                      {j.processed ? `+${ms(j.message.publishedAt, j.processed.processedAt)} after publishing` : 'not yet'}
                     </dd>
                   </div>
                   <div><dt>message id</dt><dd className="mono">{j.message.messageId}</dd></div>

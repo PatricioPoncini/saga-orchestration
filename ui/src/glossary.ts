@@ -7,46 +7,46 @@ export const GLOSSARY: Term[] = [
   {
     term: 'Saga',
     definition:
-      'Una operación larga partida en pasos, cada uno en su propio servicio y con su propia base. No hay una transacción que abarque todo.',
+      'A long operation split into steps, each one in its own service with its own database. There is no single transaction that covers everything.',
   },
   {
-    term: 'Orquestación',
+    term: 'Orchestration',
     definition:
-      'Un coordinador central, el orquestador, le dice a cada servicio qué hacer y espera su respuesta. La alternativa es la coreografía: cada servicio reacciona a eventos de los demás.',
+      'A central coordinator, the orchestrator, tells each service what to do and waits for its reply. The alternative is choreography: each service reacts to the events of the others.',
   },
   {
-    term: 'Compensación',
+    term: 'Compensation',
     definition:
-      'La acción que deshace un paso que ya se confirmó: devolver un pago, cancelar una orden. Se ejecutan en orden inverso.',
+      'The action that undoes a step that was already committed: refunding a payment, cancelling an order. Compensations run in reverse order.',
   },
   {
     term: 'Pivot',
     definition:
-      'El paso sin vuelta atrás. Si falla, se compensa todo lo anterior; si sale bien, la saga sí o sí va a terminar bien.',
+      'The step with no way back. If it fails, everything before it is compensated; if it succeeds, the saga will definitely finish successfully.',
   },
   {
     term: 'Retriable',
     definition:
-      'Los pasos que vienen después del pivot. No pueden fallar por reglas de negocio: si algo sale mal, sólo se reintentan.',
+      'The steps that come after the pivot. They cannot fail because of business rules: if something goes wrong, they are just retried.',
   },
   {
-    term: 'Falta de aislamiento',
+    term: 'Lack of isolation',
     definition:
-      'Mientras la saga corre, otros pueden ver estados intermedios: la orden sigue "pendiente" aunque el pago ya se cobró.',
+      'While the saga is running, others can see intermediate states: the order is still "pending" even though the payment was already charged.',
   },
   {
-    term: 'Timeout y reintento',
+    term: 'Timeout and retry',
     definition:
-      'Si un servicio no responde a tiempo, el orquestador reenvía el comando. Si se agotan los intentos, la saga queda fallida y pide intervención manual.',
+      'If a service does not reply in time, the orchestrator sends the command again. If it runs out of attempts, the saga ends as failed and needs manual intervention.',
   },
   {
-    term: 'Idempotencia',
+    term: 'Idempotency',
     definition:
-      'Procesar el mismo mensaje dos veces tiene el mismo efecto que procesarlo una. Es clave porque la mensajería entrega "al menos una vez".',
+      'Processing the same message twice has the same effect as processing it once. This is key because messaging delivers "at least once".',
   },
   {
     term: 'Outbox',
     definition:
-      'El mensaje se guarda en la misma transacción que el cambio de negocio y después se publica. Así nunca queda un cambio sin su mensaje, ni un mensaje sin su cambio.',
+      'The message is saved in the same transaction as the business change and published afterwards. This way there is never a change without its message, or a message without its change.',
   },
 ]

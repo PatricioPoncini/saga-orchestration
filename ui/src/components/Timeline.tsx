@@ -11,33 +11,33 @@ interface Kind {
 function classify(e: TimelineEntry): Kind {
   switch (e.kind) {
     case 'COMMAND_SENT':
-      return e.description.includes('compensación') ? { label: 'compensación', tone: 'comp' } : { label: 'comando', tone: '' }
+      return e.description.includes('compensation') ? { label: 'compensation', tone: 'comp' } : { label: 'command', tone: '' }
     case 'REPLY_RECEIVED':
-      return e.description.includes('FALLÓ') ? { label: 'falló', tone: 'fail' } : { label: 'respuesta', tone: 'ok' }
+      return e.description.includes('FAILED') ? { label: 'failed', tone: 'fail' } : { label: 'reply', tone: 'ok' }
     case 'REPLY_IGNORED':
-      return { label: 'descartada', tone: 'comp' }
+      return { label: 'discarded', tone: 'comp' }
     case 'SAGA_NOTE':
-      return { label: 'decisión', tone: '' }
+      return { label: 'decision', tone: '' }
     case 'SAGA_FINISHED':
-      return { label: 'fin', tone: 'strong' }
+      return { label: 'end', tone: 'strong' }
     case 'LOCAL_TX_COMMITTED':
-      return { label: 'tx local', tone: '' }
+      return { label: 'local tx', tone: '' }
     case 'DUPLICATE_IGNORED':
-      return { label: 'duplicado', tone: 'comp' }
+      return { label: 'duplicate', tone: 'comp' }
     case 'CHAOS':
-      return { label: 'falla inyectada', tone: 'fail' }
+      return { label: 'injected fault', tone: 'fail' }
     case 'MESSAGE_PUBLISHED':
       return { label: 'outbox → broker', tone: 'dim', technical: true }
     case 'MESSAGE_RECEIVED':
-      return { label: 'recibido', tone: 'dim', technical: true }
+      return { label: 'received', tone: 'dim', technical: true }
     default:
       return { label: e.kind.toLowerCase(), tone: '' }
   }
 }
 
 function detail(e: TimelineEntry): string {
-  if (e.kind === 'COMMAND_SENT') return e.description.match(/\(intento \d+\)/)?.[0] ?? ''
-  if (e.kind === 'REPLY_RECEIVED') return e.description.match(/FALLÓ: (.*)\)$/)?.[1] ?? ''
+  if (e.kind === 'COMMAND_SENT') return e.description.match(/\(attempt \d+\)/)?.[0] ?? ''
+  if (e.kind === 'REPLY_RECEIVED') return e.description.match(/FAILED: (.*)\)$/)?.[1] ?? ''
   return e.description
 }
 
@@ -48,15 +48,15 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   const visible = entries.filter((e) => technical || !classify(e).technical)
 
   return (
-    <section aria-label="Línea de tiempo">
+    <section aria-label="Timeline">
       <div className="timeline-head">
-        <h2 className="section-title">Línea de tiempo</h2>
+        <h2 className="section-title">Timeline</h2>
         <label className="check">
           <input type="checkbox" checked={technical} onChange={(e) => setTechnical(e.target.checked)} />
-          detalle de outbox / recepción
+          outbox / delivery details
         </label>
       </div>
-      {visible.length === 0 && <p className="empty">Esperando los primeros eventos…</p>}
+      {visible.length === 0 && <p className="empty">Waiting for the first events…</p>}
       <ol className="events">
         {visible.map((e) => {
           const kind = classify(e)

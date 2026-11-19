@@ -105,12 +105,12 @@ class OutboxRelay(
                         kind = TraceKinds.MESSAGE_PUBLISHED,
                         messageType = message.type,
                         messageId = message.messageId,
-                        description = "Outbox relay publicó ${message.type} en ${message.exchange} → ${message.routingKey}",
+                        description = "Outbox relay published ${message.type} to ${message.exchange} → ${message.routingKey}",
                     )
                 }
             }
         } catch (e: Exception) {
-            log.warn("Outbox relay falló, se reintentará: {}", e.message)
+            log.warn("Outbox relay failed, it will retry: {}", e.message)
         }
     }
 }

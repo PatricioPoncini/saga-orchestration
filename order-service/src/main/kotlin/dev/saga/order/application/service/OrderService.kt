@@ -50,5 +50,5 @@ class OrderService(
     override fun orders(): List<Order> = orders.findAll()
 
     private fun load(orderId: String) = orders.findById(orderId)
-        ?: throw NoSuchElementException("Orden $orderId inexistente")
+        ?: throw NoSuchElementException("Order $orderId not found")
 }

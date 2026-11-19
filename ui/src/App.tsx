@@ -13,7 +13,7 @@ export default function App() {
   const onReset = useCallback(() => setResetTick((t) => t + 1), [])
   const onLive = useCallback((value: boolean) => setLive(value), [])
 
-  const isData = route.path.startsWith('/datos')
+  const isData = route.path.startsWith('/data')
 
   return (
     <>
@@ -21,14 +21,14 @@ export default function App() {
       <div className="page">
         <header className="topbar">
           <Link className="logo" href="/">Saga<span>Lab</span></Link>
-          <nav className="topnav" aria-label="Secciones">
-            <Link href="/" className={!isData ? 'current' : ''} aria-current={!isData ? 'page' : undefined}>Saga en vivo</Link>
-            <Link href="/datos" className={isData ? 'current' : ''} aria-current={isData ? 'page' : undefined}>Datos y mensajes</Link>
+          <nav className="topnav" aria-label="Sections">
+            <Link href="/" className={!isData ? 'current' : ''} aria-current={!isData ? 'page' : undefined}>Live saga</Link>
+            <Link href="/data" className={isData ? 'current' : ''} aria-current={isData ? 'page' : undefined}>Data & messages</Link>
             <a href="https://patricioponcini.com.ar/blog" target="_blank" rel="noreferrer">Blog ↗</a>
           </nav>
           <div className="status-bar">
             <ResetCountdown onReset={onReset} />
-            <span className={`live ${live ? 'on' : ''}`}><i />{live ? 'en vivo' : 'desconectado'}</span>
+            <span className={`live ${live ? 'on' : ''}`}><i />{live ? 'live' : 'disconnected'}</span>
           </div>
         </header>
 
@@ -41,7 +41,7 @@ export default function App() {
         )}
 
         <footer className="footer">
-          <span>SagaLab · patrón Saga con orquestación · Kotlin, Spring Boot, RabbitMQ</span>
+          <span>SagaLab · Saga pattern with orchestration · Kotlin, Spring Boot, RabbitMQ</span>
           <a href="https://microservices.io/patterns/data/saga.html" target="_blank" rel="noreferrer">microservices.io/patterns/data/saga ↗</a>
         </footer>
       </div>

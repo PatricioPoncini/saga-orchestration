@@ -48,11 +48,11 @@ class SagaEngineTest {
     @Test
     fun `payment rejected compensates only the order`() {
         val started = engine.start("s", data, t0)
-        val d = engine.onReply(started.instance, fail("AuthorizePayment", "sin fondos"), t0).advance()
+        val d = engine.onReply(started.instance, fail("AuthorizePayment", "insufficient funds"), t0).advance()
 
         assertEquals(SagaStatus.COMPENSATING, d.instance.status)
         assertEquals("RejectOrder", d.command?.type)
-        assertEquals("sin fondos", d.command?.payload?.get("reason"))
+        assertEquals("insufficient funds", d.command?.payload?.get("reason"))
 
         val done = engine.onReply(d.instance, ok("RejectOrder"), t0).advance()
         assertEquals(SagaStatus.COMPENSATED, done.instance.status)
@@ -66,7 +66,7 @@ class SagaEngineTest {
     fun `pivot failure compensates previous steps in reverse order`() {
         var d = engine.start("s", data, t0)
         d = engine.onReply(d.instance, ok("AuthorizePayment"), t0).advance()
-        d = engine.onReply(d.instance, fail("ReserveStock", "sin stock"), t0).advance()
+        d = engine.onReply(d.instance, fail("ReserveStock", "out of stock"), t0).advance()
         assertEquals("RefundPayment", d.command?.type)
 
         d = engine.onReply(d.instance, ok("RefundPayment"), t0).advance()

@@ -41,9 +41,9 @@ class InventoryCommandListener(
                 MessageTypes.RESERVE_STOCK -> {
                     val cmd = envelope.payloadAs<ReserveStock>(mapper)
                     val r = reserveStock.reserve(ReserveStockCommand(envelope.sagaId, cmd.orderId, cmd.productId, cmd.quantity))
-                    "Reserva de ${r.quantity} x ${r.productId} → ${r.status}" + (r.reason?.let { " ($it)" } ?: "")
+                    "Reservation of ${r.quantity} x ${r.productId} → ${r.status}" + (r.reason?.let { " ($it)" } ?: "")
                 }
-                else -> error("Comando desconocido: ${envelope.type}")
+                else -> error("Unknown command: ${envelope.type}")
             }
         }
     }
@@ -53,7 +53,7 @@ class InventoryCommandListener(
         if (retries == 0) {
             trace.emit(
                 envelope.sagaId, TraceKinds.CHAOS, envelope.type, envelope.messageId,
-                "inventory está caído para esta saga: el mensaje vuelve a esperar en ${Topology.INVENTORY_RETRY_QUEUE} y se reintenta cada ${Topology.RETRY_DELAY_MS / 1000} s",
+                "inventory is down for this saga: the message goes back to wait in ${Topology.INVENTORY_RETRY_QUEUE} and is retried every ${Topology.RETRY_DELAY_MS / 1000} s",
             )
         }
         val retried = envelope.copy(headers = envelope.headers + (RETRIES to (retries + 1).toString()))

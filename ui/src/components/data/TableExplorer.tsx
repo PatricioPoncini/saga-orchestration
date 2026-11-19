@@ -28,8 +28,8 @@ export function TableExplorer({ databases, selected, onSelect, rows, onlySaga, o
     (sagaId && row.saga_id === sagaId) || (orderId && (row.order_id === orderId || row.id === orderId))
 
   return (
-    <section id="explorador" aria-label="Explorador de tablas" className="explorer">
-      <div className="explorer-tabs" role="tablist" aria-label="Servicio">
+    <section id="explorer" aria-label="Table explorer" className="explorer">
+      <div className="explorer-tabs" role="tablist" aria-label="Service">
         {SERVICES.map((s) => (
           <button
             key={s.key}
@@ -69,9 +69,9 @@ export function TableExplorer({ databases, selected, onSelect, rows, onlySaga, o
             </p>
             <p style={{ margin: '4px 0 0' }}>{TABLE_INFO[table.name] ?? ''}</p>
           </div>
-          <label className={`check ${hasSagaColumn ? '' : 'disabled'}`} title={hasSagaColumn ? '' : 'Esta tabla no tiene saga_id ni order_id: muestra las filas de todos'}>
+          <label className={`check ${hasSagaColumn ? '' : 'disabled'}`} title={hasSagaColumn ? '' : 'This table has no saga_id or order_id: it shows everyone\'s rows'}>
             <input type="checkbox" checked={onlySaga && hasSagaColumn} disabled={!hasSagaColumn || !sagaId} onChange={(e) => onOnlySaga(e.target.checked)} />
-            sólo filas de tu saga
+            only rows from your saga
           </label>
         </div>
       )}
@@ -92,7 +92,7 @@ export function TableExplorer({ databases, selected, onSelect, rows, onlySaga, o
             </thead>
             <tbody>
               {rows.rows.length === 0 && (
-                <tr><td colSpan={rows.columns.length} className="empty">Sin filas.</td></tr>
+                <tr><td colSpan={rows.columns.length} className="empty">No rows.</td></tr>
               )}
               {rows.rows.map((row, i) => (
                 <tr key={i} className={related(row) ? 'related' : ''}>
@@ -111,8 +111,8 @@ export function TableExplorer({ databases, selected, onSelect, rows, onlySaga, o
             </tbody>
           </table>
           <p className="grid-foot dim">
-            {rows.rows.length} de {rows.total} filas{rows.filteredBySaga ? ' (filtradas por saga)' : ''} · las más recientes primero ·
-            resaltadas: relacionadas con la saga elegida
+            {rows.rows.length} of {rows.total} rows{rows.filteredBySaga ? ' (filtered by saga)' : ''} · newest first ·
+            highlighted: related to the selected saga
           </p>
         </div>
       )}

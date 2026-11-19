@@ -34,7 +34,7 @@ class SagaOrchestratorService(
 
     override fun handleReply(sagaId: String, replyType: String, from: String, reply: SagaReply) {
         val instance = sagas.findByIdForUpdate(sagaId) ?: return
-        val outcome = if (reply.success) "OK" else "FALLÓ: ${reply.reason}"
+        val outcome = if (reply.success) "OK" else "FAILED: ${reply.reason}"
         record(sagaId, TimelineKinds.REPLY_RECEIVED, actor = from, target = ORCHESTRATOR, type = replyType,
             description = "$replyType ($outcome)")
 
@@ -72,14 +72,14 @@ class SagaOrchestratorService(
 
         decision.command?.let { command ->
             dispatcher.dispatch(saga.id, command, saga.context)
-            val label = if (saga.awaiting?.compensating == true) "compensación" else "comando"
+            val label = if (saga.awaiting?.compensating == true) "compensation" else "command"
             record(saga.id, TimelineKinds.COMMAND_SENT, ORCHESTRATOR, command.participant, command.type,
-                "Envía $label ${command.type} a ${command.participant} (intento ${saga.awaiting?.attempts ?: 1})")
+                "Sends $label ${command.type} to ${command.participant} (attempt ${saga.awaiting?.attempts ?: 1})")
         }
 
         if (saga.status.terminal) {
             record(saga.id, TimelineKinds.SAGA_FINISHED, ORCHESTRATOR, null, null,
-                "Saga finalizada: ${saga.status}" + (saga.failureReason?.let { " — $it" } ?: ""))
+                "Saga finished: ${saga.status}" + (saga.failureReason?.let { " — $it" } ?: ""))
         }
     }
 

@@ -29,14 +29,14 @@ class OrderCommandListener(
                 MessageTypes.APPROVE_ORDER -> {
                     val cmd = envelope.payloadAs<ApproveOrder>(mapper)
                     val order = approveOrder.approve(envelope.sagaId, cmd.orderId)
-                    "Orden ${order.id.take(8)} → ${order.status}"
+                    "Order ${order.id.take(8)} → ${order.status}"
                 }
                 MessageTypes.REJECT_ORDER -> {
                     val cmd = envelope.payloadAs<RejectOrder>(mapper)
                     val order = rejectOrder.reject(envelope.sagaId, cmd.orderId, cmd.reason)
-                    "Compensación: orden ${order.id.take(8)} → ${order.status}"
+                    "Compensation: order ${order.id.take(8)} → ${order.status}"
                 }
-                else -> error("Comando desconocido: ${envelope.type}")
+                else -> error("Unknown command: ${envelope.type}")
             }
         }
     }

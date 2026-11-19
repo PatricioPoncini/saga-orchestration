@@ -42,7 +42,7 @@ class DemoReset(
                 jdbc.sql("truncate table ${tables.joinToString { "\"$it\"" }} restart identity").update()
             }
             seedSql()?.let { jdbc.sql(it).update() }
-            log.info("Demo reiniciada: {} tablas vaciadas", tables.size)
+            log.info("Demo reset: {} tables emptied", tables.size)
         }
         purgeQueues()
         lastResetAt = Instant.now()
@@ -52,7 +52,7 @@ class DemoReset(
         try {
             amqpAdmin.purgeQueue(queue, false)
         } catch (e: Exception) {
-            log.warn("No se pudo purgar la cola {}: {}", queue, e.message)
+            log.warn("Could not purge queue {}: {}", queue, e.message)
         }
     }
 
@@ -75,10 +75,10 @@ class DemoResetScheduler(private val reset: DemoReset) : SchedulingConfigurer {
 
     override fun configureTasks(registrar: ScheduledTaskRegistrar) {
         if (!reset.enabled) {
-            log.info("Reinicio automático de la demo desactivado (DEMO_RESET_INTERVAL=0)")
+            log.info("Automatic demo reset disabled (DEMO_RESET_INTERVAL=0)")
             return
         }
-        log.info("Reinicio automático de la demo cada {} (próximo: {})", reset.interval, reset.nextResetAt())
+        log.info("Automatic demo reset every {} (next: {})", reset.interval, reset.nextResetAt())
         registrar.addTriggerTask({ reset.reset() }) { reset.nextResetAt(Instant.now()) }
     }
 }

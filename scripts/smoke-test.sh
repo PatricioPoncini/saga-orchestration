@@ -19,14 +19,14 @@ run() {
   if [[ "$status" == "$expected" ]]; then
     echo "✅ $name → $status (saga ${saga:0:8})"
   else
-    echo "❌ $name → esperado $expected, obtenido '${status}' (saga $saga)"; exit 1
+    echo "❌ $name → expected $expected, got '${status}' (saga $saga)"; exit 1
   fi
 }
 
-run "Camino feliz"        p-1 1 120  '{}'                          COMPLETED
-run "Pago rechazado"      p-2 3 1350 '{}'                          COMPENSATED
-run "Sin stock"           p-3 1 300  '{}'                          COMPENSATED
-run "Mensajes duplicados" p-4 2 80   '{"duplicateCommands":true}'  COMPLETED
-run "Tarjeta rechazada"   p-1 1 120  '{"paymentRejected":true}'    COMPENSATED
+run "Happy path"          p-1 1 120  '{}'                          COMPLETED
+run "Payment rejected"    p-2 3 1350 '{}'                          COMPENSATED
+run "Out of stock"        p-3 1 300  '{}'                          COMPENSATED
+run "Duplicate messages"  p-4 2 80   '{"duplicateCommands":true}'  COMPLETED
+run "Card declined"       p-1 1 120  '{"paymentRejected":true}'    COMPENSATED
 
-echo "Todos los escenarios OK"
+echo "All scenarios OK"

@@ -29,12 +29,12 @@ class SagaEngine<D>(
     fun onReply(instance: SagaInstance<D>, reply: SagaReply, now: Instant): SagaDecision<D> {
         val awaiting = instance.awaiting
         if (instance.status.terminal || awaiting == null) {
-            return SagaDecision.Ignore("La saga ya terminó (${instance.status}): se descarta ${reply.commandType}")
+            return SagaDecision.Ignore("The saga already finished (${instance.status}): ${reply.commandType} is discarded")
         }
         if (awaiting.commandType != reply.commandType) {
             return SagaDecision.Ignore(
-                "Se esperaba la respuesta a ${awaiting.commandType} pero llegó la de ${reply.commandType}: " +
-                    "se descarta (respuesta tardía o duplicada)",
+                "Expected the reply to ${awaiting.commandType} but got the one for ${reply.commandType}: " +
+                    "discarded (late or duplicate reply)",
             )
         }
 
@@ -48,11 +48,11 @@ class SagaEngine<D>(
                         data = step.onSuccess(instance.data, reply.data),
                         stepStates = instance.stepStates.replace(index, StepState.SUCCEEDED),
                     )
-                    forwardFrom(updated, index, now, listOf("${step.name} completado por ${step.participant}"))
+                    forwardFrom(updated, index, now, listOf("${step.name} completed by ${step.participant}"))
                 }
 
                 step.kind == StepKind.RETRIABLE ->
-                    resend(instance, now, "${step.name} falló (${reply.reason}). Es RETRIABLE: se reintenta, nunca se compensa")
+                    resend(instance, now, "${step.name} failed (${reply.reason}). It is RETRIABLE: it is retried, never compensated")
 
                 else -> {
                     val failed = instance.copy(
@@ -68,7 +68,7 @@ class SagaEngine<D>(
                     )
                     compensateFrom(
                         failed, index - 1, now,
-                        listOf("${step.name} falló: ${reply.reason}. Se compensan los pasos anteriores en orden inverso"),
+                        listOf("${step.name} failed: ${reply.reason}. The previous steps are compensated in reverse order"),
                     )
                 }
             }
@@ -78,19 +78,19 @@ class SagaEngine<D>(
             val updated = instance.copy(stepStates = instance.stepStates.replace(index, StepState.COMPENSATED))
             compensateFrom(updated, index - 1, now, listOf("${step.compensationName} completada: ${step.name} deshecho"))
         } else {
-            resend(instance, now, "La compensación ${step.compensationName} falló (${reply.reason}): las compensaciones se reintentan hasta tener éxito")
+            resend(instance, now, "Compensation ${step.compensationName} failed (${reply.reason}): compensations are retried until they succeed")
         }
     }
 
     fun onTimeout(instance: SagaInstance<D>, now: Instant): SagaDecision<D> {
         val awaiting = instance.awaiting
-            ?: return SagaDecision.Ignore("No está esperando ninguna respuesta")
-        if (instance.status.terminal) return SagaDecision.Ignore("La saga ya terminó")
-        if (Duration.between(awaiting.sentAt, now) < replyTimeout) return SagaDecision.Ignore("Todavía dentro del timeout")
+            ?: return SagaDecision.Ignore("Not waiting for any reply")
+        if (instance.status.terminal) return SagaDecision.Ignore("The saga already finished")
+        if (Duration.between(awaiting.sentAt, now) < replyTimeout) return SagaDecision.Ignore("Still within the timeout")
 
         if (awaiting.attempts >= maxAttempts) {
-            val reason = "Sin respuesta de ${awaiting.participant} a ${awaiting.commandType} tras ${awaiting.attempts} " +
-                "intentos: requiere intervención manual"
+            val reason = "No reply from ${awaiting.participant} to ${awaiting.commandType} after ${awaiting.attempts} " +
+                "attempts: manual intervention required"
             return SagaDecision.Advance(
                 instance.copy(
                     status = SagaStatus.FAILED,
@@ -105,8 +105,8 @@ class SagaEngine<D>(
         }
         return resend(
             instance, now,
-            "Timeout: ${awaiting.participant} no respondió ${awaiting.commandType} en ${replyTimeout.seconds}s " +
-                "(intento ${awaiting.attempts}/$maxAttempts). Se reenvía el comando",
+            "Timeout: ${awaiting.participant} did not reply to ${awaiting.commandType} within ${replyTimeout.seconds}s " +
+                "(attempt ${awaiting.attempts}/$maxAttempts). The command is sent again",
         )
     }
 
@@ -122,12 +122,12 @@ class SagaEngine<D>(
 
         while (next < steps.size && steps[next].action == null) {
             states[next] = StepState.SUCCEEDED
-            allNotes += "${steps[next].name}: ya realizado como transacción local de ${steps[next].participant}"
+            allNotes += "${steps[next].name}: already done as a local transaction of ${steps[next].participant}"
             next++
         }
 
         if (next >= steps.size) {
-            allNotes += "Todos los pasos completados: saga COMPLETED"
+            allNotes += "All steps completed: saga COMPLETED"
             return SagaDecision.Advance(
                 instance.copy(status = SagaStatus.COMPLETED, stepStates = states, awaiting = null, updatedAt = now),
                 command = null,
@@ -159,7 +159,7 @@ class SagaEngine<D>(
             val step = steps[i]
             val compensation = step.compensation
             if (instance.stepStates[i] == StepState.SUCCEEDED && compensation != null) {
-                val command = compensation(instance.data, instance.failureReason ?: "Falla en la saga")
+                val command = compensation(instance.data, instance.failureReason ?: "Saga failure")
                 return SagaDecision.Advance(
                     instance.copy(
                         stepStates = instance.stepStates.replace(i, StepState.COMPENSATING),
@@ -174,7 +174,7 @@ class SagaEngine<D>(
         return SagaDecision.Advance(
             instance.copy(status = SagaStatus.COMPENSATED, awaiting = null, updatedAt = now),
             command = null,
-            notes = notes + "Todas las compensaciones completadas: saga COMPENSATED (el sistema volvió a un estado consistente)",
+            notes = notes + "All compensations completed: saga COMPENSATED (the system is back to a consistent state)",
         )
     }
 
@@ -182,7 +182,7 @@ class SagaEngine<D>(
         val awaiting = instance.awaiting!!
         val step = steps[awaiting.stepIndex]
         val command = if (awaiting.compensating) {
-            step.compensation!!(instance.data, instance.failureReason ?: "Falla en la saga")
+            step.compensation!!(instance.data, instance.failureReason ?: "Saga failure")
         } else {
             step.action!!(instance.data)
         }

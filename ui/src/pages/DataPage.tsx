@@ -21,7 +21,7 @@ interface Props {
   onLive: (live: boolean) => void
 }
 
-const scenarioTitle = (id: string | null) => SCENARIOS.find((s) => s.id === id)?.title ?? 'orden'
+const scenarioTitle = (id: string | null) => SCENARIOS.find((s) => s.id === id)?.title ?? 'order'
 
 export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
   const [sagas, setSagas] = useState<SagaView[]>([])
@@ -47,7 +47,7 @@ export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
       setLoaded(true)
       onError(null)
     } catch {
-      onError('No se puede contactar al orquestador. ¿Están levantados los servicios? (docker compose up)')
+      onError('Cannot reach the orchestrator. Are the services running? (docker compose up)')
     }
   }, [onError])
 
@@ -114,18 +114,18 @@ export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
 
   const select = (service: ServiceKey, table: string) => {
     setSelected({ service, table })
-    document.getElementById('explorador')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    document.getElementById('explorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
     <>
       <section className="hero">
-        <p>Datos y mensajes</p>
-        <h1>Cuatro bases, ningún join.</h1>
+        <p>Data & messages</p>
+        <h1>Four databases, zero joins.</h1>
         <p className="lead">
-          Cada servicio es dueño de sus datos y <b>nadie lee la base de otro</b>. La única forma de enterarse de algo
-          es un mensaje: se escribe en el <b>outbox</b> en la misma transacción, viaja por <b>RabbitMQ</b> y del otro
-          lado se anota en <b>processed_messages</b> para no procesarlo dos veces.
+          Each service owns its data and <b>nobody reads another service's database</b>. The only way to find out about
+          something is a message: it is written to the <b>outbox</b> in the same transaction, travels through <b>RabbitMQ</b> and on the
+          other side it is recorded in <b>processed_messages</b> so it is not processed twice.
         </p>
       </section>
 
@@ -133,13 +133,13 @@ export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
 
       <BrokerFlow queues={queues} />
 
-      <section aria-label="Viaje de los mensajes" className="journey-section">
+      <section aria-label="Message journey" className="journey-section">
         <div className="journey-head">
-          <h2 className="section-title">El viaje de cada mensaje de tu saga</h2>
+          <h2 className="section-title">The journey of each message in your saga</h2>
           {sagas.length > 0 && (
             <label className="field saga-picker">
-              Tus sagas
-              <select value={sagaId ?? ''} onChange={(e) => navigate(`/datos?saga=${e.target.value}`)}>
+              Your sagas
+              <select value={sagaId ?? ''} onChange={(e) => navigate(`/data?saga=${e.target.value}`)}>
                 {sagas.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.id.slice(0, 8)} · {scenarioTitle(scenarios.get(s.id) ?? null)} · {SAGA_STATUS[s.status].label}
@@ -152,24 +152,24 @@ export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
 
         {loaded && sagas.length === 0 ? (
           <p className="empty-state">
-            Todavía no corriste ningún escenario desde este navegador. <Link href="/">Elegí uno en la saga en vivo →</Link>
+            You haven't run any scenario from this browser yet. <Link href="/">Pick one in the live saga →</Link>
           </p>
         ) : (
           <>
-            <ol className="journey-steps" aria-label="Cómo viaja un mensaje">
-              <li><b>1</b><span><span className="strong">Se escribe en el outbox</span> de quien envía, en la misma transacción que el cambio de negocio.</span></li>
-              <li><b>2</b><span><span className="strong">El relay lo publica</span> en RabbitMQ (exchange + routing key).</span></li>
-              <li><b>3</b><span><span className="strong">El destino lo procesa</span> y lo anota en su inbox para ignorar duplicados.</span></li>
+            <ol className="journey-steps" aria-label="How a message travels">
+              <li><b>1</b><span><span className="strong">It is written to the outbox</span> of the sender, in the same transaction as the business change.</span></li>
+              <li><b>2</b><span><span className="strong">The relay publishes it</span> to RabbitMQ (exchange + routing key).</span></li>
+              <li><b>3</b><span><span className="strong">The receiver processes it</span> and records it in its inbox to ignore duplicates.</span></li>
             </ol>
             <div className="journey-legend">
-              <span><i className="lg outbox" />esperando en el outbox (1 → 2)</span>
-              <span><i className="lg transit" />viajando / en la cola (2 → 3)</span>
-              <span><i className="lg dot" />procesado</span>
+              <span><i className="lg outbox" />waiting in the outbox (1 → 2)</span>
+              <span><i className="lg transit" />travelling / in the queue (2 → 3)</span>
+              <span><i className="lg dot" />processed</span>
               {saga && (
                 <span className="dim">
                   Saga <span className="mono strong">{saga.id.slice(0, 8)}</span> ·{' '}
-                  <span className={SAGA_STATUS[saga.status].tone}>{SAGA_STATUS[saga.status].label}</span> · {journeys.length} mensajes ·
-                  clic en una fila para ver el detalle
+                  <span className={SAGA_STATUS[saga.status].tone}>{SAGA_STATUS[saga.status].label}</span> · {journeys.length} messages ·
+                  click a row to see the details
                 </span>
               )}
             </div>
@@ -179,7 +179,7 @@ export function DataPage({ resetTick, sagaParam, onError, onLive }: Props) {
       </section>
 
       <div>
-        <h2 className="section-title" style={{ marginBottom: 14 }}>Explorador de tablas</h2>
+        <h2 className="section-title" style={{ marginBottom: 14 }}>Table explorer</h2>
         <TableExplorer
           databases={databases}
           selected={selected}

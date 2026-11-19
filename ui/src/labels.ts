@@ -3,21 +3,21 @@ import type { SagaStatus, StepState } from './types'
 export type Tone = 'ok' | 'fail' | 'comp' | 'strong' | 'dim' | ''
 
 export const SAGA_STATUS: Record<SagaStatus, { label: string; tone: Tone }> = {
-  RUNNING: { label: 'en curso', tone: 'strong' },
-  COMPENSATING: { label: 'compensando', tone: 'comp' },
-  COMPLETED: { label: 'completada', tone: 'ok' },
-  COMPENSATED: { label: 'compensada', tone: 'comp' },
-  FAILED: { label: 'fallida', tone: 'fail' },
+  RUNNING: { label: 'running', tone: 'strong' },
+  COMPENSATING: { label: 'compensating', tone: 'comp' },
+  COMPLETED: { label: 'completed', tone: 'ok' },
+  COMPENSATED: { label: 'compensated', tone: 'comp' },
+  FAILED: { label: 'failed', tone: 'fail' },
 }
 
 export const STEP_STATE: Record<StepState, string> = {
-  PENDING: 'pendiente',
-  RUNNING: 'ejecutando…',
+  PENDING: 'pending',
+  RUNNING: 'running…',
   SUCCEEDED: 'ok',
-  FAILED: 'falló',
-  COMPENSATING: 'deshaciendo…',
-  COMPENSATED: 'deshecho',
-  SKIPPED: 'no se ejecuta',
+  FAILED: 'failed',
+  COMPENSATING: 'undoing…',
+  COMPENSATED: 'undone',
+  SKIPPED: 'not executed',
 }
 
 export const KIND: Record<string, string> = {

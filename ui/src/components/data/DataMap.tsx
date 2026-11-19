@@ -9,7 +9,7 @@ interface Props {
 
 export function DataMap({ databases, selected, onSelect }: Props) {
   return (
-    <section aria-label="Mapa de datos" className="data-map">
+    <section aria-label="Data map" className="data-map">
       <div className="map-grid">
         {SERVICES.map((s) => {
           const db = databases[s.key]
@@ -19,7 +19,7 @@ export function DataMap({ databases, selected, onSelect }: Props) {
                 <b>{s.name}</b>
                 <span className="mono">{db ? `db ${db.database}` : '…'}</span>
               </header>
-              {!db && <p className="empty">Sin conexión con el servicio.</p>}
+              {!db && <p className="empty">No connection to the service.</p>}
               <ul>
                 {db?.tables.map((t) => {
                   const active = selected?.service === s.key && selected.table === t.name
@@ -28,11 +28,11 @@ export function DataMap({ databases, selected, onSelect }: Props) {
                       <button
                         className={`table-chip cat-${t.category} ${active ? 'active' : ''}`}
                         onClick={() => onSelect(s.key, t.name)}
-                        title={`${t.columns.length} columnas · ${CATEGORY_LABEL[t.category]}`}
+                        title={`${t.columns.length} columns · ${CATEGORY_LABEL[t.category]}`}
                       >
                         <span className="mono">{t.name}</span>
                         <span className="count">
-                          {t.pending ? <em className="comp">{t.pending} sin publicar · </em> : null}
+                          {t.pending ? <em className="comp">{t.pending} unpublished · </em> : null}
                           {t.rowCount}
                         </span>
                       </button>
@@ -46,10 +46,10 @@ export function DataMap({ databases, selected, onSelect }: Props) {
 
       </div>
       <div className="legend">
-        <span><i className="sq cat-domain" />negocio</span>
-        <span><i className="sq cat-saga" />estado de la saga</span>
-        <span><i className="sq cat-messaging" />mensajería (outbox / inbox)</span>
-        <span className="dim">Ningún servicio lee la base de otro: todo cruza por RabbitMQ (abajo). Los totales son de todos los visitantes.</span>
+        <span><i className="sq cat-domain" />business</span>
+        <span><i className="sq cat-saga" />saga state</span>
+        <span><i className="sq cat-messaging" />messaging (outbox / inbox)</span>
+        <span className="dim">No service reads another service's database: everything goes through RabbitMQ (below). Totals include all visitors.</span>
       </div>
     </section>
   )

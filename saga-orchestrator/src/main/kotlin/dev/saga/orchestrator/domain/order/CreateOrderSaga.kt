@@ -27,7 +27,7 @@ object CreateOrderSaga {
                 name = "CREATE_ORDER",
                 participant = ORDER,
                 kind = StepKind.COMPENSATABLE,
-                description = "Crear la orden en estado PENDING (transacción local de order-service)",
+                description = "Create the order in PENDING state (local transaction of order-service)",
                 action = null,
                 compensation = { data, reason ->
                     SagaCommand(ORDER, "RejectOrder", mapOf("orderId" to data.orderId, "reason" to reason))
@@ -38,7 +38,7 @@ object CreateOrderSaga {
                 name = "AUTHORIZE_PAYMENT",
                 participant = PAYMENT,
                 kind = StepKind.COMPENSATABLE,
-                description = "Autorizar el cobro al cliente",
+                description = "Authorize the charge to the customer",
                 action = { data ->
                     SagaCommand(
                         PAYMENT, "AuthorizePayment",
@@ -53,7 +53,7 @@ object CreateOrderSaga {
                 name = "RESERVE_STOCK",
                 participant = INVENTORY,
                 kind = StepKind.PIVOT,
-                description = "Reservar stock. Punto de no retorno: si funciona, la saga va a completarse",
+                description = "Reserve stock. Point of no return: if it succeeds, the saga will complete",
                 action = { data ->
                     SagaCommand(
                         INVENTORY, "ReserveStock",
@@ -65,7 +65,7 @@ object CreateOrderSaga {
                 name = "APPROVE_ORDER",
                 participant = ORDER,
                 kind = StepKind.RETRIABLE,
-                description = "Aprobar la orden. No puede fallar por negocio: sólo se reintenta",
+                description = "Approve the order. It cannot fail for business reasons: it is only retried",
                 action = { data -> SagaCommand(ORDER, "ApproveOrder", mapOf("orderId" to data.orderId)) },
             ),
         ),

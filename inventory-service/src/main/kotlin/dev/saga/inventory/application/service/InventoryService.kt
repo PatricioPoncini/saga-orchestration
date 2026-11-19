@@ -31,9 +31,9 @@ class InventoryService(
     private fun newReservation(command: ReserveStockCommand): Reservation {
         val product = products.findByIdForUpdate(command.productId)
         val reservation = when {
-            product == null -> rejected(command, "Producto ${command.productId} inexistente")
+            product == null -> rejected(command, "Product ${command.productId} not found")
             !product.canReserve(command.quantity) ->
-                rejected(command, "Stock insuficiente de '${product.name}': disponible ${product.available}, pedido ${command.quantity}")
+                rejected(command, "Not enough stock of '${product.name}': available ${product.available}, requested ${command.quantity}")
             else -> {
                 products.save(product.reserve(command.quantity))
                 Reservation(command.orderId, command.productId, command.quantity, ReservationStatus.RESERVED, null, clock.instant())
@@ -47,7 +47,7 @@ class InventoryService(
         Reservation(command.orderId, command.productId, command.quantity, ReservationStatus.REJECTED, reason, clock.instant())
 
     override fun restock(productId: String, quantity: Int): Product {
-        val product = products.findByIdForUpdate(productId) ?: throw NoSuchElementException("Producto $productId inexistente")
+        val product = products.findByIdForUpdate(productId) ?: throw NoSuchElementException("Product $productId not found")
         return product.restock(quantity).also(products::save)
     }
 

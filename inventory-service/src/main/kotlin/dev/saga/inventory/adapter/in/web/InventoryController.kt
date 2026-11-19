@@ -41,7 +41,7 @@ class InventoryController(
     fun recover(@PathVariable sagaId: String): SimulatedOutages.Status {
         if (outages.status(sagaId).down) {
             outages.recover(sagaId)
-            trace.emit(sagaId, TraceKinds.CHAOS, description = "inventory volvió a estar disponible para esta saga: procesa los mensajes que esperaban")
+            trace.emit(sagaId, TraceKinds.CHAOS, description = "inventory is available again for this saga: it processes the messages that were waiting")
         }
         return outages.status(sagaId)
     }

@@ -31,7 +31,7 @@ class OrchestratorListeners(
     @RabbitListener(queues = [Topology.ORCHESTRATOR_QUEUE])
     fun onStart(body: String) {
         val envelope: Envelope = mapper.readValue(body)
-        require(envelope.type == MessageTypes.START_CREATE_ORDER_SAGA) { "Mensaje desconocido: ${envelope.type}" }
+        require(envelope.type == MessageTypes.START_CREATE_ORDER_SAGA) { "Unknown message: ${envelope.type}" }
         handler.handle(envelope, traceReceipt = false) {
             val p = envelope.payloadAs<StartCreateOrderSaga>(mapper)
             startSaga.start(

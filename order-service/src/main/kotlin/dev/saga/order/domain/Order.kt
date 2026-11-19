@@ -20,13 +20,13 @@ data class Order(
     fun approve(now: Instant): Order = when (status) {
         OrderStatus.PENDING -> copy(status = OrderStatus.APPROVED, updatedAt = now)
         OrderStatus.APPROVED -> this
-        OrderStatus.REJECTED -> throw IllegalStateException("No se puede aprobar la orden $id: ya fue rechazada")
+        OrderStatus.REJECTED -> throw IllegalStateException("Cannot approve order $id: it was already rejected")
     }
 
     fun reject(reason: String, now: Instant): Order = when (status) {
         OrderStatus.PENDING -> copy(status = OrderStatus.REJECTED, rejectionReason = reason, updatedAt = now)
         OrderStatus.REJECTED -> this
-        OrderStatus.APPROVED -> throw IllegalStateException("No se puede rechazar la orden $id: ya fue aprobada")
+        OrderStatus.APPROVED -> throw IllegalStateException("Cannot reject order $id: it was already approved")
     }
 
     companion object {
@@ -43,10 +43,10 @@ data class Order(
             amount: BigDecimal,
             now: Instant,
         ): Order {
-            require(quantity in 1..MAX_QUANTITY) { "La cantidad debe estar entre 1 y $MAX_QUANTITY" }
-            require(amount > BigDecimal.ZERO && amount <= MAX_AMOUNT) { "El monto debe ser positivo y no superar $MAX_AMOUNT" }
-            require(customerId.isNotBlank() && customerId.length <= 64) { "customerId inválido" }
-            require(ID_PATTERN.matches(productId)) { "productId inválido" }
+            require(quantity in 1..MAX_QUANTITY) { "Quantity must be between 1 and $MAX_QUANTITY" }
+            require(amount > BigDecimal.ZERO && amount <= MAX_AMOUNT) { "Amount must be positive and not greater than $MAX_AMOUNT" }
+            require(customerId.isNotBlank() && customerId.length <= 64) { "Invalid customerId" }
+            require(ID_PATTERN.matches(productId)) { "Invalid productId" }
             return Order(id, sagaId, customerId, productId, quantity, amount, OrderStatus.PENDING, null, now, now)
         }
     }

@@ -9,7 +9,7 @@ export function SagaDiagram({ steps }: { steps: StepView[] }) {
 
   return (
     <div className="sky-panel">
-      <div className="constellation" style={columns} role="list" aria-label="Pasos de la saga">
+      <div className="constellation" style={columns} role="list" aria-label="Saga steps">
         {steps.map((step, i) => {
           const next = steps[i + 1]
           return (
@@ -50,26 +50,26 @@ export function SagaDiagram({ steps }: { steps: StepView[] }) {
                     className={`reverse ${reverseActive ? 'active' : ''}`}
                     style={{ width: `calc(${(i - previous) * 100}% - 56px)` }}
                   >
-                    <em>← orden inverso</em>
+                    <em>← reverse order</em>
                   </span>
                 )}
                 <div className="comp-star" aria-hidden="true">↺</div>
                 <span className="name">{step.compensation}</span>
                 <span className="state">
-                  {state === 'running' ? 'ejecutando…' : state === 'done' ? 'ejecutada' : 'sólo si algo falla después'}
+                  {state === 'running' ? 'running…' : state === 'done' ? 'done' : 'only if something fails later'}
                 </span>
               </div>
             )
           })}
       </div>
 
-      <div className="legend" aria-label="Referencias">
+      <div className="legend" aria-label="Legend">
         <span><i style={{ borderColor: 'var(--ok)' }} />ok</span>
-        <span><i style={{ borderColor: '#fff' }} />ejecutando</span>
-        <span><i style={{ borderColor: 'var(--fail)' }} />falló</span>
-        <span><i style={{ borderColor: 'var(--comp)' }} />compensado</span>
-        <span><i style={{ borderColor: 'rgba(255,255,255,.4)', borderStyle: 'dashed' }} />no ejecutado</span>
-        <span className="dim">compensable = se puede deshacer · pivot = punto de no retorno · retriable = sólo se reintenta</span>
+        <span><i style={{ borderColor: '#fff' }} />running</span>
+        <span><i style={{ borderColor: 'var(--fail)' }} />failed</span>
+        <span><i style={{ borderColor: 'var(--comp)' }} />compensated</span>
+        <span><i style={{ borderColor: 'rgba(255,255,255,.4)', borderStyle: 'dashed' }} />not executed</span>
+        <span className="dim">compensable = can be undone · pivot = point of no return · retriable = only retried</span>
       </div>
     </div>
   )

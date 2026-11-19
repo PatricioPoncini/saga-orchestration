@@ -13,12 +13,12 @@ data class Product(
     fun canReserve(quantity: Int): Boolean = quantity in 1..available
 
     fun reserve(quantity: Int): Product {
-        require(canReserve(quantity)) { "Stock insuficiente: disponible $available, pedido $quantity" }
+        require(canReserve(quantity)) { "Not enough stock: available $available, requested $quantity" }
         return copy(available = available - quantity, reserved = reserved + quantity)
     }
 
     fun restock(quantity: Int): Product {
-        require(quantity > 0) { "La cantidad debe ser positiva" }
+        require(quantity > 0) { "Quantity must be positive" }
         return copy(available = available + quantity)
     }
 }

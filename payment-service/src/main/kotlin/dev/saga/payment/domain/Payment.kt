@@ -15,7 +15,7 @@ data class Payment(
     val updatedAt: Instant,
 ) {
     fun refund(now: Instant): Payment = when (status) {
-        PaymentStatus.AUTHORIZED -> copy(status = PaymentStatus.REFUNDED, reason = "Reembolsado por compensación", updatedAt = now)
+        PaymentStatus.AUTHORIZED -> copy(status = PaymentStatus.REFUNDED, reason = "Refunded by compensation", updatedAt = now)
         else -> this
     }
 
@@ -31,8 +31,8 @@ data class Payment(
             now: Instant,
         ): Payment {
             val rejectionReason = when {
-                forceRejection -> "Tarjeta rechazada por el banco (falla inyectada)"
-                amount > CREDIT_LIMIT -> "El monto $amount supera el límite de crédito de $CREDIT_LIMIT"
+                forceRejection -> "Card declined by the bank (injected fault)"
+                amount > CREDIT_LIMIT -> "Amount $amount is over the credit limit of $CREDIT_LIMIT"
                 else -> null
             }
             return Payment(

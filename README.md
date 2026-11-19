@@ -1,20 +1,20 @@
-# Saga Pattern: demo con orquestación
+# Saga Pattern: orchestration demo
 
-Implementación didáctica del [patrón Saga](https://microservices.io/patterns/data/saga.html) con
-**Kotlin + Spring Boot + arquitectura hexagonal + RabbitMQ**, con una **UI web** para ver cómo avanza
-cada saga, cómo se compensa cuando algo falla y cómo se comporta ante fallas de infraestructura.
+A hands-on implementation of the [Saga pattern](https://microservices.io/patterns/data/saga.html) with
+**Kotlin + Spring Boot + hexagonal architecture + RabbitMQ**, plus a **web UI** that shows how each saga
+moves forward, how it compensates when something fails and how it behaves when the infrastructure fails.
 
-## Levantarlo en tu máquina
+## Running it on your machine
 
-### Requisitos
+### Requirements
 
-- **Docker** con **Docker Compose v2** (Docker Desktop en Mac/Windows, o Docker Engine en Linux).
-- Unos **4 GB de RAM libres** para Docker: son 4 servicios Java, Postgres y RabbitMQ.
-- Los puertos **3000, 5432, 5672, 8081–8084 y 15672** libres.
+- **Docker** with **Docker Compose v2** (Docker Desktop on Mac/Windows, or Docker Engine on Linux).
+- About **4 GB of free RAM** for Docker: there are 4 Java services, Postgres and RabbitMQ.
+- Ports **3000, 5432, 5672, 8081–8084 and 15672** must be free.
 
-No hace falta tener Java, Gradle ni Node instalados: todo se compila dentro de Docker.
+You don't need Java, Gradle or Node installed: everything is built inside Docker.
 
-### Paso a paso
+### Step by step
 
 ```bash
 git clone https://github.com/PatricioPoncini/saga-orchestration.git
@@ -22,74 +22,74 @@ cd saga-orchestration
 docker compose up --build -d
 ```
 
-La primera vez tarda unos minutos porque descarga las imágenes y compila los servicios. Para saber
-cuándo está listo:
+The first run takes a few minutes because it downloads the images and builds the services. To check
+when it's ready:
 
 ```bash
 docker compose ps
 ```
 
-Cuando `postgres` y `rabbitmq` figuran como `healthy` y los servicios como `running`, abrí
-**http://localhost:3000** y probá los escenarios desde la UI.
+When `postgres` and `rabbitmq` show up as `healthy` and the services as `running`, open
+**http://localhost:3000** and try the scenarios from the UI.
 
-Con `make` es lo mismo: `make up` (levanta), `make logs` (logs de los servicios), `make down` (baja todo).
+You can also use `make`: `make up` (start), `make logs` (service logs), `make down` (stop everything).
 
-### Qué queda corriendo
+### What's running
 
-| Qué | URL |
+| What | URL |
 |---|---|
-| UI de la demo | http://localhost:3000 |
+| Demo UI | http://localhost:3000 |
 | RabbitMQ management | http://localhost:15672 (guest / guest) |
 | order-service | http://localhost:8081 |
 | payment-service | http://localhost:8082 |
 | inventory-service | http://localhost:8083 |
 | saga-orchestrator | http://localhost:8084 |
-| Postgres | `localhost:5432` (saga / saga): bases `orders`, `payments`, `inventory`, `orchestrator` |
+| Postgres | `localhost:5432` (saga / saga): databases `orders`, `payments`, `inventory`, `orchestrator` |
 
-### Comprobar que todo funciona
+### Checking that everything works
 
 ```bash
 ./scripts/smoke-test.sh
 ```
 
-Corre los escenarios contra los servicios levantados y muestra ✅ o ❌ para cada uno.
+It runs the scenarios against the running services and shows ✅ or ❌ for each one.
 
-### Bajar todo
-
-```bash
-docker compose down      # baja los contenedores y conserva los datos
-docker compose down -v   # baja todo y borra los datos
-```
-
-### Si algo no arranca
-
-- **Un puerto está ocupado**: `lsof -i :3000` (o el puerto que sea) para ver qué lo usa, y cerralo.
-- **Un servicio se reinicia en loop**: `docker compose logs -f <servicio>` para ver el error.
-- **Cambiaste una migración SQL que ya se había aplicado**: `docker compose down -v` y volvé a levantar.
-
-### Reinicio automático de la demo
-
-Como es una demo, cada servicio **vacía todas sus tablas** (no las borra) y purga sus colas de RabbitMQ cada
-15 minutos, alineado al reloj (:00, :15, :30, :45), así los cuatro se reinician en el mismo momento.
-Inventory vuelve a cargar el catálogo inicial. La UI muestra cuánto falta para el próximo reinicio.
+### Stopping everything
 
 ```bash
-DEMO_RESET_INTERVAL=5m docker compose up -d   # cada 5 minutos
-DEMO_RESET_INTERVAL=0  docker compose up -d   # nunca
+docker compose down      # stops the containers and keeps the data
+docker compose down -v   # stops everything and deletes the data
 ```
 
-También se puede fijar en un archivo `.env` junto al `docker-compose.yml` (`DEMO_RESET_INTERVAL=1h`).
+### If something doesn't start
 
-## El caso de uso: `CreateOrderSaga`
+- **A port is already in use**: run `lsof -i :3000` (or whichever port it is) to see what's using it, and stop it.
+- **A service keeps restarting**: run `docker compose logs -f <service>` to see the error.
+- **You changed a SQL migration that was already applied**: run `docker compose down -v` and start again.
 
-Un cliente crea una orden. Para aprobarla hay que **cobrar** (payment-service) y **reservar stock**
-(inventory-service). Cada servicio tiene **su propia base de datos**, así que no hay una transacción ACID
-que abarque todo: la saga reemplaza esa transacción distribuida por una **secuencia de transacciones
-locales**, y cada paso que se puede deshacer tiene una **transacción compensatoria**.
+### Automatic demo reset
 
-| # | Paso | Participante | Tipo | Compensación |
+Since this is a demo, every service **empties all its tables** (it doesn't drop them) and purges its RabbitMQ
+queues every 15 minutes, aligned to the clock (:00, :15, :30, :45), so all four reset at the same time.
+Inventory loads the initial catalog again. The UI shows how long until the next reset.
+
+```bash
+DEMO_RESET_INTERVAL=5m docker compose up -d   # every 5 minutes
+DEMO_RESET_INTERVAL=0  docker compose up -d   # never
+```
+
+You can also set it in a `.env` file next to `docker-compose.yml` (`DEMO_RESET_INTERVAL=1h`).
+
+## The use case: `CreateOrderSaga`
+
+A customer creates an order. To approve it, the system has to **charge the customer** (payment-service) and
+**reserve stock** (inventory-service). Each service has **its own database**, so there is no ACID transaction
+that covers everything: the saga replaces that distributed transaction with a **sequence of local
+transactions**, and every step that can be undone has a **compensating transaction**.
+
+| # | Step | Participant | Type | Compensation |
 |---|---|---|---|---|
-| 1 | `CREATE_ORDER` (orden en `PENDING`) | order-service | compensable | `RejectOrder` |
+| 1 | `CREATE_ORDER` (order in `PENDING`) | order-service | compensable | `RejectOrder` |
 | 2 | `AUTHORIZE_PAYMENT` | payment-service | compensable | `RefundPayment` |
 | 3 | `RESERVE_STOCK` | inventory-service | **pivot** | — |
 | 4 | `APPROVE_ORDER` | order-service | retriable | — |
@@ -102,72 +102,72 @@ sequenceDiagram
     participant P as payment-service
     participant I as inventory-service
     UI->>O: POST /orders
-    O->>O: tx local: Order PENDING + outbox
+    O->>O: local tx: Order PENDING + outbox
     O-)S: StartCreateOrderSaga
     S-)P: AuthorizePayment
     P-)S: PaymentAuthorized
     S-)I: ReserveStock
-    alt hay stock
+    alt in stock
         I-)S: StockReserved
         S-)O: ApproveOrder
         O-)S: OrderApproved  (saga COMPLETED)
-    else sin stock
+    else out of stock
         I-)S: StockUnavailable
-        S-)P: RefundPayment   (compensación)
+        S-)P: RefundPayment   (compensation)
         P-)S: PaymentRefunded
-        S-)O: RejectOrder     (compensación)
+        S-)O: RejectOrder     (compensation)
         O-)S: OrderRejected   (saga COMPENSATED)
     end
 ```
 
-## Escenarios guiados (botones en la UI)
+## Guided scenarios (buttons in the UI)
 
-| # | Escenario | Concepto que muestra | Resultado |
+| # | Scenario | Concept it shows | Result |
 |---|---|---|---|
-| 1 | Camino feliz | Secuencia de transacciones locales | `COMPLETED` |
-| 2 | Pago rechazado ($1350 > límite de $1000) | Compensación de un solo paso | `COMPENSATED` |
-| 3 | Sin stock (falla el pivot) | Compensaciones en **orden inverso** | `COMPENSATED` |
-| 4 | Mensajes duplicados | Consumidor idempotente (Inbox) | `COMPLETED`, sin efectos duplicados |
-| 5 | Payment lento (14 s vs. timeout de 10 s) | Timeout, reintento, idempotencia de negocio, respuesta tardía descartada | `COMPLETED` |
-| 6 | Inventory caído | Mensajería durable: los comandos esperan en una cola de reintento (TTL) | `COMPLETED` si vuelve a tiempo, si no `FAILED` |
+| 1 | Happy path | Sequence of local transactions | `COMPLETED` |
+| 2 | Payment rejected ($1350 > $1000 limit) | Single-step compensation | `COMPENSATED` |
+| 3 | Out of stock (the pivot fails) | Compensations in **reverse order** | `COMPENSATED` |
+| 4 | Duplicate messages | Idempotent consumer (Inbox) | `COMPLETED`, with no duplicate effects |
+| 5 | Slow payment (14 s vs. a 10 s timeout) | Timeout, retry, business idempotency, late reply discarded | `COMPLETED` |
+| 6 | Inventory down | Durable messaging: commands wait in a retry queue (TTL) | `COMPLETED` if it comes back in time, otherwise `FAILED` |
 
-Cada escenario manda sus fallas junto con la orden (por ejemplo `{"faults": {"paymentDelayMs": 14000}}`).
-Viajan como headers de los mensajes de **esa** saga, así que se pueden correr escenarios distintos
-en paralelo (por ejemplo, en varias pestañas) sin que se afecten entre sí: "Payment lento" demora sólo las respuestas de tu saga (outbox con
-`available_at`) y "Inventory caído" rechaza sólo tus mensajes, que esperan en `inventory.retry` y vuelven solos.
+Each scenario sends its faults together with the order (for example `{"faults": {"paymentDelayMs": 14000}}`).
+They travel as headers on the messages of **that** saga only, so you can run different scenarios
+in parallel (for example, in several tabs) without them affecting each other: "Slow payment" delays only the replies of your saga (outbox with
+`available_at`) and "Inventory down" rejects only your messages, which wait in `inventory.retry` and come back on their own.
 
-En la UI vas a ver:
-- **Diagrama** de la saga: pasos hacia adelante y compensaciones (abajo, en rojo, de derecha a izquierda).
-- **Línea de tiempo**: quién le envía qué a quién, decisiones del orquestador, transacciones locales, duplicados ignorados.
-- Una saga a la vez: hasta que la saga en curso no termina, no se puede iniciar otro escenario.
-- En "Inventory caído", un botón para volver a levantar inventory mientras la saga espera.
-- Las bases de cada servicio y el recorrido de cada mensaje están en la sección **Datos y mensajes** (`/datos`).
+In the UI you'll see:
+- The saga **diagram**: forward steps and compensations (at the bottom, in red, from right to left).
+- A **timeline**: who sends what to whom, orchestrator decisions, local transactions and ignored duplicates.
+- One saga at a time: you can't start another scenario until the current saga finishes.
+- In "Inventory down", a button to bring inventory back up while the saga is waiting.
+- The databases of each service and the journey of each message are in the **Data & messages** section (`/data`).
 
-## Sección "Datos y mensajes" (`/datos`)
+## "Data & messages" section (`/data`)
 
-Muestra las bases de cada servicio y cómo se comunican, sin que ningún servicio lea la base de otro:
+It shows the databases of each service and how they communicate, without any service reading another one's database:
 
-- **Mapa**: las 4 bases (tablas de negocio, de la saga y de mensajería) conectadas sólo a través de RabbitMQ.
-- **Viaje de cada mensaje** de una saga: `outbox` de quien envía → exchange → `processed_messages` de quien
-  recibe, con los tiempos reales sacados de las tablas (latencia del relay, tiempo en la cola, duplicados).
-- **Explorador de tablas**: columnas, tipos y últimas filas de cada tabla, filtrables por saga.
+- **Map**: the 4 databases (business, saga and messaging tables) connected only through RabbitMQ.
+- **Journey of each message** in a saga: the sender's `outbox` → exchange → the receiver's `processed_messages`,
+  with real timings taken from the tables (relay latency, time in the queue, duplicates).
+- **Table explorer**: columns, types and latest rows of each table, filterable by saga.
 
-Cada servicio expone endpoints de inspección **de sólo lectura** sobre su propia base (sólo para la demo):
+Each service exposes **read-only** inspection endpoints over its own database (for the demo only):
 
-| Endpoint | Devuelve |
+| Endpoint | Returns |
 |---|---|
-| `GET /inspect/database` | tablas, columnas, cantidad de filas y mensajes pendientes en el outbox |
-| `GET /inspect/tables/{tabla}?limit=25&sagaId=` | últimas filas de una tabla |
-| `GET /inspect/outbox?sagaId=` | mensajes que ese servicio envió en una saga |
-| `GET /inspect/inbox?ids=a,b` | cuáles de esos mensajes ya procesó |
+| `GET /inspect/database` | tables, columns, row counts and pending messages in the outbox |
+| `GET /inspect/tables/{table}?limit=25&sagaId=` | latest rows of a table |
+| `GET /inspect/outbox?sagaId=` | messages that the service sent in a saga |
+| `GET /inspect/inbox?ids=a,b` | which of those messages it has already processed |
 
-## Arquitectura
+## Architecture
 
 ```mermaid
 flowchart LR
     UI["UI<br/>React + nginx"]
 
-    subgraph Servicios
+    subgraph Services
         direction TB
         ORCH["saga-orchestrator"]
         ORD["order-service"]
@@ -180,7 +180,7 @@ flowchart LR
     UI -- "POST /orders" --> ORD
     UI -- "REST + SSE" --> ORCH
 
-    ORCH <-- "comandos / respuestas" --> MQ
+    ORCH <-- "commands / replies" --> MQ
     ORD <--> MQ
     PAY <--> MQ
     INV <--> MQ
@@ -191,36 +191,36 @@ flowchart LR
     INV --- DB3[("inventory")]
 ```
 
-- La **UI** crea la orden en order-service y sigue la saga en vivo desde el orquestador (SSE).
-- Los servicios **nunca se llaman entre sí**: el orquestador manda comandos por `saga.commands` y cada
-  participante responde por `saga.replies`.
-- Cada servicio tiene **su propia base** (en la misma instancia de Postgres, pero sin compartir tablas) y
-  escribe sus mensajes en un **outbox** dentro de la misma transacción local.
+- The **UI** creates the order in order-service and follows the saga live from the orchestrator (SSE).
+- Services **never call each other**: the orchestrator sends commands through `saga.commands` and each
+  participant replies through `saga.replies`.
+- Each service has **its own database** (in the same Postgres instance, but without sharing tables) and
+  writes its messages to an **outbox** inside the same local transaction.
 
-Cada servicio sigue la **arquitectura hexagonal** (puertos y adaptadores):
+Each service follows **hexagonal architecture** (ports and adapters):
 
 ```
-dev/saga/<servicio>/
-  domain/                 ← modelo y reglas de negocio. Kotlin puro.
-  application/port/in/    ← casos de uso (lo que el mundo le puede pedir al servicio)
-  application/port/out/   ← lo que el servicio necesita del mundo (repositorio, mensajería)
-  application/service/    ← implementación de los casos de uso. Sin Spring.
+dev/saga/<service>/
+  domain/                 ← model and business rules. Plain Kotlin.
+  application/port/in/    ← use cases (what the outside world can ask the service to do)
+  application/port/out/   ← what the service needs from the outside world (repository, messaging)
+  application/service/    ← use case implementations. No Spring.
   adapter/in/             ← web (REST), messaging (RabbitMQ listeners), scheduling
   adapter/out/            ← persistence (JDBC), messaging (Outbox)
-  config/                 ← cableado de Spring
+  config/                 ← Spring wiring
 ```
 
-Un test de **ArchUnit** (`HexagonalArchitectureTest`) en cada servicio rompe el build si `domain` o
-`application` dependen de Spring o de algún adaptador.
+An **ArchUnit** test (`HexagonalArchitectureTest`) in each service breaks the build if `domain` or
+`application` depend on Spring or on any adapter.
 
-## Mapa concepto → código
+## Concept → code map
 
-Ver [docs/conceptos.md](docs/conceptos.md).
+See [docs/concepts.md](docs/concepts.md).
 
-## Desarrollo
+## Development
 
 ```bash
-./gradlew test                     # tests de dominio + ArchUnit (JDK 17+)
-./scripts/smoke-test.sh            # escenarios end-to-end contra docker compose
-cd ui && npm install && npm run dev  # UI con hot reload en :3000 (usa los servicios de docker)
+./gradlew test                     # domain tests + ArchUnit (JDK 17+)
+./scripts/smoke-test.sh            # end-to-end scenarios against docker compose
+cd ui && npm install && npm run dev  # UI with hot reload on :3000 (uses the docker services)
 ```

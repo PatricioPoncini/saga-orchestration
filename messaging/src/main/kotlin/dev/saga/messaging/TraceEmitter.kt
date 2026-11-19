@@ -24,7 +24,7 @@ class TraceEmitter(
             val event = TraceEvent(sagaId, serviceName, kind, messageType, messageId, description, Instant.now())
             rabbit.convertAndSend(Topology.TRACE_EXCHANGE, "", mapper.writeValueAsString(event))
         } catch (e: Exception) {
-            log.warn("No se pudo publicar trace: {}", e.message)
+            log.warn("Could not publish trace: {}", e.message)
         }
     }
 }

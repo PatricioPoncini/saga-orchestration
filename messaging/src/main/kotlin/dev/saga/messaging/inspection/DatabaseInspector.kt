@@ -69,7 +69,7 @@ class DatabaseInspector(
 
     fun rows(table: String, limit: Int, sagaId: String?, orderId: String?): TableRows {
         val columns = describeColumns()[table]
-            ?: throw IllegalArgumentException("Tabla desconocida: $table")
+            ?: throw IllegalArgumentException("Unknown table: $table")
         val names = columns.map { it.name }.toSet()
         val filter = when {
             sagaId != null && "saga_id" in names -> "saga_id" to sagaId

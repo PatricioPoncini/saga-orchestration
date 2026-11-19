@@ -48,9 +48,9 @@ export function ResetCountdown({ onReset }: { onReset: () => void }) {
   return (
     <span
       className={`reset ${remaining < 60 ? 'soon' : ''}`}
-      title={`Es una demo: cada ${minutes} min se vacían todas las bases (DEMO_RESET_INTERVAL).`}
+      title={`This is a demo: every ${minutes} min all databases are emptied (DEMO_RESET_INTERVAL).`}
     >
-      {remaining === 0 ? 'reiniciando…' : <>se reinicia en <span className="mono">{fmt(remaining)}</span></>}
+      {remaining === 0 ? 'resetting…' : <>resets in <span className="mono">{fmt(remaining)}</span></>}
     </span>
   )
 }

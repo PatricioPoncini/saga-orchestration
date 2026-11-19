@@ -75,7 +75,7 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
           setOutage(null)
         }
       } else {
-        onError('No se puede contactar al orquestador. ¿Están levantados los servicios? (docker compose up)')
+        onError('Cannot reach the orchestrator. Are the services running? (docker compose up)')
       }
     }
   }, [onError])
@@ -104,9 +104,9 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
     try {
       const catalog = products.length ? products : await api.products()
       const product = catalog.find((p) => p.id === s.order.productId)
-      if (!product) throw new Error('producto inexistente')
+      if (!product) throw new Error('product not found')
       const created = await api.createOrder({
-        customerId: 'cliente-1',
+        customerId: 'customer-1',
         productId: s.order.productId,
         quantity: s.order.quantity,
         amount: product.price * s.order.quantity,
@@ -116,7 +116,7 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
       rememberSaga(created.sagaId, s.id)
       setSelectedId(created.sagaId)
     } catch {
-      onError('No se pudo iniciar el escenario')
+      onError('Could not start the scenario')
     } finally {
       setBusy(false)
     }
@@ -137,31 +137,31 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
   return (
     <>
       <section className="hero">
-        <p className="eyebrow">Demo interactiva · Patrón Saga con orquestación</p>
-        <h1>Saga orquestada, en vivo.</h1>
+        <p className="eyebrow">Interactive demo · Saga pattern with orchestration</p>
+        <h1>An orchestrated saga, live.</h1>
         <p className="lead">
-          Una saga reemplaza una transacción distribuida por una secuencia de transacciones locales. En esta demo, un
-          orquestador coordina la creación de una orden entre tres servicios independientes, <b>order</b>,{' '}
-          <b>payment</b> e <b>inventory</b>, cada uno con su propia base de datos. Si un paso falla, ejecuta las
-          compensaciones en orden inverso para dejar el sistema consistente.
+          A saga replaces a distributed transaction with a sequence of local transactions. In this demo, an
+          orchestrator coordinates the creation of an order across three independent services, <b>order</b>,{' '}
+          <b>payment</b> and <b>inventory</b>, each one with its own database. If a step fails, it runs the
+          compensations in reverse order to leave the system consistent.
         </p>
 
-        <ol className="guide" aria-label="Cómo usar la demo">
+        <ol className="guide" aria-label="How to use the demo">
           <li>
             <span className="guide-num">01</span>
-            <b>Elegí un escenario</b>
-            <span>En la lista de la izquierda: el camino feliz o una falla concreta (pago rechazado, falta de stock, un servicio caído…).</span>
+            <b>Pick a scenario</b>
+            <span>From the list on the left: the happy path or a specific failure (payment rejected, out of stock, a service down…).</span>
           </li>
           <li>
             <span className="guide-num">02</span>
-            <b>Seguí la saga</b>
-            <span>El diagrama muestra en qué paso está y si compensa. Debajo, la línea de tiempo detalla cada mensaje y cada decisión del orquestador.</span>
+            <b>Follow the saga</b>
+            <span>The diagram shows which step it is on and whether it is compensating. Below it, the timeline lists every message and every orchestrator decision.</span>
           </li>
           <li>
             <span className="guide-num">03</span>
-            <b>Mirá los datos</b>
+            <b>Check the data</b>
             <span>
-              En <Link href="/datos">Datos y mensajes</Link> se ven las tablas de cada servicio y el recorrido de cada mensaje por RabbitMQ.
+              In <Link href="/data">Data & messages</Link> you can see the tables of each service and the path of each message through RabbitMQ.
             </span>
           </li>
         </ol>
@@ -176,7 +176,7 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
               <span className="pill">CreateOrderSaga</span>
               {scenario && (
                 <span className="pill">
-                  Escenario {pad(SCENARIOS.indexOf(scenario) + 1)} · {scenario.concept}
+                  Scenario {pad(SCENARIOS.indexOf(scenario) + 1)} · {scenario.concept}
                 </span>
               )}
             </div>
@@ -184,45 +184,45 @@ export function SagaPage({ resetTick, onError, onLive }: Props) {
               {saga ? (
                 <h2>Saga <span className="mono">{saga.id.slice(0, 8)}</span></h2>
               ) : (
-                <h2>{selectedId ? 'Iniciando saga…' : 'Los 4 pasos de la saga'}</h2>
+                <h2>{selectedId ? 'Starting saga…' : 'The 4 steps of the saga'}</h2>
               )}
               {status && saga && (
                 <span className={`status ${status.tone} ${saga.status === 'RUNNING' ? 'running' : ''}`}>{status.label}</span>
               )}
               {saga && (
-                <Link className="more-link" href={`/datos?saga=${saga.id}`}>Ver sus mensajes y tablas →</Link>
+                <Link className="more-link" href={`/data?saga=${saga.id}`}>See its messages and tables →</Link>
               )}
             </div>
             {scenario && <p>{scenario.description}</p>}
             {saga && (
               <p className="dim">
                 {saga.data.quantity} × {product?.name ?? saga.data.productId} · ${Number(saga.data.amount).toFixed(2)} ·
-                orden <span className="mono">{saga.data.orderId.slice(0, 8)}</span>
+                order <span className="mono">{saga.data.orderId.slice(0, 8)}</span>
               </p>
             )}
             {saga?.awaiting && (
               <p className="waiting">
-                El orquestador espera <span className="mono">{saga.awaiting.commandType}</span> de{' '}
+                The orchestrator is waiting for <span className="mono">{saga.awaiting.commandType}</span> from{' '}
                 <b>{saga.awaiting.participant}</b>
-                {saga.awaiting.compensating && ' (compensación)'} · intento {saga.awaiting.attempts}
+                {saga.awaiting.compensating && ' (compensation)'} · attempt {saga.awaiting.attempts}
               </p>
             )}
             {outage?.down && running && (
               <div className="callout" role="status">
                 <span>
-                  <b>inventory está caído para tu saga.</b> Sus mensajes esperan en la cola de reintento de RabbitMQ y
-                  el orquestador los reenvía. Levantalo antes de que se agoten los 5 intentos (~50 s) y la saga continúa.
+                  <b>inventory is down for your saga.</b> Its messages wait in the RabbitMQ retry queue and
+                  the orchestrator resends them. Bring it back before the 5 attempts run out (~50 s) and the saga continues.
                   {autoRecoverIn !== null && (
-                    <span className="dim"> Vuelve solo en {Math.floor(autoRecoverIn / 60)}:{pad(autoRecoverIn % 60)}.</span>
+                    <span className="dim"> It comes back on its own in {Math.floor(autoRecoverIn / 60)}:{pad(autoRecoverIn % 60)}.</span>
                   )}
                 </span>
-                <button className="btn-primary" onClick={recover}>Levantar inventory</button>
+                <button className="btn-primary" onClick={recover}>Bring inventory back</button>
               </div>
             )}
             {saga?.failureReason && (
-              <p>Motivo: <span className={saga.status === 'FAILED' ? 'fail' : 'comp'}>{saga.failureReason}</span></p>
+              <p>Reason: <span className={saga.status === 'FAILED' ? 'fail' : 'comp'}>{saga.failureReason}</span></p>
             )}
-            {!saga && !selectedId && <p>Elegí un escenario a la izquierda para ver la saga en movimiento.</p>}
+            {!saga && !selectedId && <p>Pick a scenario on the left to see the saga in action.</p>}
           </div>
 
           <SagaDiagram steps={steps} />

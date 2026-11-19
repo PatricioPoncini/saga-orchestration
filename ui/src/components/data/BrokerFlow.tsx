@@ -19,7 +19,7 @@ const EXCHANGES: Exchange[] = [
   {
     name: 'saga.commands',
     publishers: ['orchestrator', 'order'],
-    explain: 'Lee la routing key de cada mensaje y lo deja en la cola de ese servicio.',
+    explain: 'Reads the routing key of each message and puts it in that service\'s queue.',
     routes: [
       { key: 'orchestrator', queue: 'orchestrator.commands', consumer: 'orchestrator', carries: 'StartCreateOrderSaga' },
       { key: 'payment', queue: 'payment.commands', consumer: 'payment', carries: 'AuthorizePayment · RefundPayment' },
@@ -30,7 +30,7 @@ const EXCHANGES: Exchange[] = [
   {
     name: 'saga.replies',
     publishers: ['order', 'payment', 'inventory'],
-    explain: 'Todas las respuestas van a una sola cola: la del orquestador.',
+    explain: 'All replies go to a single queue: the orchestrator\'s.',
     routes: [
       { key: 'orchestrator', queue: 'orchestrator.replies', consumer: 'orchestrator', carries: 'PaymentAuthorized · StockReserved · …' },
     ],
@@ -38,9 +38,9 @@ const EXCHANGES: Exchange[] = [
   {
     name: 'saga.retry',
     publishers: ['inventory'],
-    explain: 'Si inventory está caído para una saga, le devuelve sus mensajes a esta cola de espera.',
+    explain: 'If inventory is down for a saga, it sends that saga\'s messages back to this waiting queue.',
     routes: [
-      { key: 'inventory', queue: 'inventory.retry', consumer: 'saga.commands', carries: 'ReserveStock en espera (TTL 2 s)', returnsByTtl: true },
+      { key: 'inventory', queue: 'inventory.retry', consumer: 'saga.commands', carries: 'ReserveStock waiting (TTL 2 s)', returnsByTtl: true },
     ],
   },
 ]
@@ -58,32 +58,32 @@ export function BrokerFlow({ queues }: { queues: QueueStatus[] }) {
   return (
     <section className="broker-flow" aria-labelledby="broker-title">
       <div>
-        <h2 className="section-title" id="broker-title">RabbitMQ: exchanges y colas</h2>
+        <h2 className="section-title" id="broker-title">RabbitMQ: exchanges and queues</h2>
         <p className="broker-intro">
-          Un <b>exchange</b> no guarda nada: recibe el mensaje y decide a qué cola mandarlo según su <b>routing key</b>.
-          La <b>cola</b> sí lo guarda hasta que su servicio lo procesa. Si el servicio se cae, los mensajes esperan ahí.
+          An <b>exchange</b> doesn't store anything: it receives the message and decides which queue to send it to based on its <b>routing key</b>.
+          The <b>queue</b> does store it until its service processes it. If the service goes down, the messages wait there.
         </p>
-        <p className="broker-intro dim">Los contadores incluyen los mensajes de todas las sagas en curso, no sólo la que estás mirando.</p>
+        <p className="broker-intro dim">The counters include the messages of all running sagas, not only the one you're looking at.</p>
       </div>
 
       {stuck.map((r) => (
         <div key={r.queue} className="callout" role="status">
           <span>
-            <b>{r.consumer} no está consumiendo.</b> Hay {status(r.queue)?.messages} mensajes esperando en{' '}
-            <span className="mono">{r.queue}</span>: se procesan apenas vuelva.
+            <b>{r.consumer} is not consuming.</b> There are {status(r.queue)?.messages} messages waiting in{' '}
+            <span className="mono">{r.queue}</span>: they'll be processed as soon as it comes back.
           </span>
         </div>
       ))}
 
       <div className="flow-scroll">
         <div className="flow">
-          <div className="flow-head">Publican</div>
+          <div className="flow-head">Publishers</div>
           <div className="flow-head" />
           <div className="flow-head">Exchange</div>
           <div className="flow-head">Routing key</div>
-          <div className="flow-head">Cola · mensajes esperando</div>
+          <div className="flow-head">Queue · messages waiting</div>
           <div className="flow-head" />
-          <div className="flow-head">Consume</div>
+          <div className="flow-head">Consumer</div>
 
           {EXCHANGES.map((ex) => {
             const span = { gridRow: `span ${ex.routes.length}` }
@@ -120,12 +120,12 @@ export function BrokerFlow({ queues }: { queues: QueueStatus[] }) {
                       <span className="mono strong">{r.queue}</span>
                       <small>{r.carries}</small>
                     </div>
-                    <div className="envelopes" aria-label={`${messages} mensajes esperando`}>
+                    <div className="envelopes" aria-label={`${messages} messages waiting`}>
                       {Array.from({ length: Math.min(messages, MAX_ENVELOPES) }).map((_, k) => (
                         <i key={k} />
                       ))}
                       {messages > MAX_ENVELOPES && <span className="more">+{messages - MAX_ENVELOPES}</span>}
-                      {messages === 0 && <span className="empty-queue">vacía</span>}
+                      {messages === 0 && <span className="empty-queue">empty</span>}
                     </div>
                   </div>
                 </div>,
@@ -135,9 +135,9 @@ export function BrokerFlow({ queues }: { queues: QueueStatus[] }) {
                 <div key={`${r.queue}-c`} className={`flow-cell consumer ${last ? 'group-end' : ''}`}>
                   <span className="service-chip">{r.consumer}</span>
                   {r.returnsByTtl ? (
-                    <small className="comp">↻ vuelven solos a los 2 s</small>
+                    <small className="comp">↻ they come back on their own after 2 s</small>
                   ) : (
-                    <small className={consuming ? 'ok' : 'fail'}>{consuming ? '● consumiendo' : '○ nadie consume'}</small>
+                    <small className={consuming ? 'ok' : 'fail'}>{consuming ? '● consuming' : '○ no consumer'}</small>
                   )}
                 </div>,
               ]
@@ -147,9 +147,9 @@ export function BrokerFlow({ queues }: { queues: QueueStatus[] }) {
       </div>
 
       <p className="broker-foot dim">
-        Además: <span className="mono">saga.trace</span> (fanout) lleva los eventos que ves en esta web, y{' '}
-        <span className="mono">saga.dead-letters</span> guarda los mensajes que fallaron 3 veces
-        {deadLetters > 0 ? <> — hoy tiene <b className="fail">{deadLetters}</b></> : ' (vacía)'}.
+        Also: <span className="mono">saga.trace</span> (fanout) carries the events you see on this site, and{' '}
+        <span className="mono">saga.dead-letters</span> keeps the messages that failed 3 times
+        {deadLetters > 0 ? <> — right now it has <b className="fail">{deadLetters}</b></> : ' (empty)'}.
       </p>
     </section>
   )

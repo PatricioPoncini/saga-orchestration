@@ -19,7 +19,7 @@ class TimeoutScheduler(
             try {
                 tx.executeWithoutResult { timeouts.checkTimeout(sagaId) }
             } catch (e: Exception) {
-                log.warn("Error revisando timeout de la saga {}: {}", sagaId, e.message)
+                log.warn("Error checking timeout for saga {}: {}", sagaId, e.message)
             }
         }
     }

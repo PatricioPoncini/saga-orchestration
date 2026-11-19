@@ -32,7 +32,7 @@ class IdempotentMessageHandler(
                 kind = TraceKinds.MESSAGE_RECEIVED,
                 messageType = envelope.type,
                 messageId = envelope.messageId,
-                description = "Recibido ${envelope.type} de ${envelope.source} (msg ${envelope.messageId.take(8)})",
+                description = "Received ${envelope.type} from ${envelope.source} (msg ${envelope.messageId.take(8)})",
             )
         }
 
@@ -52,7 +52,7 @@ class IdempotentMessageHandler(
                 kind = TraceKinds.DUPLICATE_IGNORED,
                 messageType = envelope.type,
                 messageId = envelope.messageId,
-                description = "Mensaje ${envelope.messageId.take(8)} (${envelope.type}) ya procesado: se ignora (Inbox)",
+                description = "Message ${envelope.messageId.take(8)} (${envelope.type}) already processed: ignored (Inbox)",
             )
         } else {
             description?.let {

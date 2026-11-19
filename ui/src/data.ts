@@ -8,20 +8,20 @@ export const SERVICES: { key: ServiceKey; name: string; queues: string[] }[] = [
 ]
 
 export const TABLE_INFO: Record<string, string> = {
-  orders: 'Las órdenes. PENDING mientras la saga está en curso: es un bloqueo semántico.',
-  payments: 'Pagos autorizados, rechazados o reembolsados (la compensación).',
-  products: 'Catálogo y stock disponible / reservado.',
-  reservations: 'Una reserva (o rechazo) por orden: idempotencia de negocio ante reintentos.',
-  saga_instance: 'Estado persistido de cada saga: el orquestador puede reiniciarse sin perderlas.',
-  saga_timeline: 'Historial que ves en la línea de tiempo (observabilidad, no es parte del patrón).',
-  outbox: 'Mensajes escritos en la MISMA transacción que el cambio de negocio. Un relay los publica en RabbitMQ.',
-  processed_messages: 'Inbox: ids de mensajes ya procesados. Si llega un duplicado, se ignora.',
+  orders: 'The orders. PENDING while the saga is running: it works as a semantic lock.',
+  payments: 'Authorized, rejected or refunded payments (the compensation).',
+  products: 'Catalog and available / reserved stock.',
+  reservations: 'One reservation (or rejection) per order: business idempotency for retries.',
+  saga_instance: 'Persisted state of each saga: the orchestrator can restart without losing them.',
+  saga_timeline: 'The history you see in the timeline (observability, not part of the pattern).',
+  outbox: 'Messages written in the SAME transaction as the business change. A relay publishes them to RabbitMQ.',
+  processed_messages: 'Inbox: ids of messages already processed. If a duplicate arrives, it is ignored.',
 }
 
 export const CATEGORY_LABEL: Record<string, string> = {
-  domain: 'negocio',
+  domain: 'business',
   saga: 'saga',
-  messaging: 'mensajería',
+  messaging: 'messaging',
 }
 
 export function targetOf(exchange: string, routingKey: string): ServiceKey {

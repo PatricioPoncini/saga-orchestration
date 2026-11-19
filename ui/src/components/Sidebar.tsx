@@ -11,16 +11,16 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 export function Sidebar({ activeScenario, onScenario, locked, lockedSagaId }: Props) {
   return (
-    <aside className="sidebar" id="escenarios">
-      <nav className="scenario-list" aria-label="Escenarios guiados">
-        <h2 className="section-title">Elegí un escenario</h2>
+    <aside className="sidebar" id="scenarios">
+      <nav className="scenario-list" aria-label="Guided scenarios">
+        <h2 className="section-title">Pick a scenario</h2>
         {SCENARIOS.map((s, i) => (
           <button
             key={s.id}
             className={`scenario ${activeScenario === s.id ? 'active' : ''}`}
             disabled={locked}
             onClick={() => onScenario(s)}
-            title={locked ? 'Esperá a que termine la saga en curso' : s.description}
+            title={locked ? 'Wait for the current saga to finish' : s.description}
           >
             <span className="scenario-text">
               <span><span className="num">{pad(i + 1)}</span>{s.title}</span>
@@ -36,11 +36,11 @@ export function Sidebar({ activeScenario, onScenario, locked, lockedSagaId }: Pr
           <i aria-hidden="true" />
           <span>
             {lockedSagaId ? (
-              <>Saga <span className="mono strong">{lockedSagaId.slice(0, 8)}</span> en curso.</>
+              <>Saga <span className="mono strong">{lockedSagaId.slice(0, 8)}</span> is running.</>
             ) : (
-              'Iniciando la saga…'
+              'Starting the saga…'
             )}{' '}
-            Cuando termine vas a poder elegir otro escenario.
+            When it finishes, you'll be able to pick another scenario.
           </span>
         </div>
       )}

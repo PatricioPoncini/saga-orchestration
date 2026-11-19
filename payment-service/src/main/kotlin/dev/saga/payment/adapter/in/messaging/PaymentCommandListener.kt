@@ -34,7 +34,7 @@ class PaymentCommandListener(
         val delayMs = DemoFaults.from(envelope.headers).paymentDelayMs
         if (delayMs > 0 && envelope.type == MessageTypes.AUTHORIZE_PAYMENT) {
             trace.emit(envelope.sagaId, TraceKinds.CHAOS, envelope.type, envelope.messageId,
-                "payment-service está lento para esta saga: su respuesta va a salir dentro de ${delayMs / 1000} s (falla inyectada)")
+                "payment-service is slow for this saga: its reply will go out in ${delayMs / 1000} s (injected fault)")
         }
 
         handler.handle(envelope) {
@@ -44,14 +44,14 @@ class PaymentCommandListener(
                     val payment = authorizePayment.authorize(
                         AuthorizePaymentCommand(envelope.sagaId, cmd.orderId, cmd.customerId, cmd.amount),
                     )
-                    "Pago ${payment.id.take(8)} → ${payment.status}" + (payment.reason?.let { " ($it)" } ?: "")
+                    "Payment ${payment.id.take(8)} → ${payment.status}" + (payment.reason?.let { " ($it)" } ?: "")
                 }
                 MessageTypes.REFUND_PAYMENT -> {
                     val cmd = envelope.payloadAs<RefundPayment>(mapper)
                     val payment = refundPayment.refund(RefundPaymentCommand(envelope.sagaId, cmd.orderId))
-                    "Compensación: pago de la orden ${cmd.orderId.take(8)} → ${payment?.status ?: "inexistente (no-op)"}"
+                    "Compensation: payment for order ${cmd.orderId.take(8)} → ${payment?.status ?: "not found (no-op)"}"
                 }
-                else -> error("Comando desconocido: ${envelope.type}")
+                else -> error("Unknown command: ${envelope.type}")
             }
         }
     }
